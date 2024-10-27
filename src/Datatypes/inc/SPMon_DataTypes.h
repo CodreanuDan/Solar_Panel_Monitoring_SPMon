@@ -86,6 +86,8 @@ typedef enum{
 typedef struct{
 bool SEN_CALIB_FLAG;
 bool COM_INIT_FLAG;
+bool COM_TASK_FLAG;
+bool SEN_TASK_FLAG;
 }InitFlags;
 extern InitFlags initFlag; 
 

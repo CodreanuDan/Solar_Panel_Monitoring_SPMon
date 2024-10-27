@@ -36,7 +36,7 @@ class SPMonMainTask
 {
   public:
     static void SPMon_MainTask_CreateMainTask();
-    static void SPMon_MainTask_ExecuteStateLogic();
+    static void SPMon_MainTask_ExecuteStateLogic(InitFlags * InitFlag);
 };
 
 /* Declare class object */

@@ -32,7 +32,7 @@ void SPMon_MainTask_MainFunc(void *parameter)
   for(;;)
   {
     Serial.println(F("[MAIN_TASK_MAIN_FUNC/called_once_per_second]"));
-    spmonMain.SPMon_MainTask_ExecuteStateLogic();
+    spmonMain.SPMon_MainTask_ExecuteStateLogic(&initFlag);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
  
@@ -44,9 +44,22 @@ void SPMon_MainTask_MainFunc(void *parameter)
 * Params:
 *
 ******************************************************************************************************/
-void SPMonMainTask::SPMon_MainTask_ExecuteStateLogic()
+void SPMonMainTask::SPMon_MainTask_ExecuteStateLogic(InitFlags * InitFlag)
 {
     Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/STARTED]"));
+    if(InitFlag->COM_TASK_FLAG == FALSE && InitFlag->SEN_TASK_FLAG == FALSE)
+    {
+        Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_FALSE&SEN_TASK_FLAG_FALSE]"));
+        InitFlag->COM_TASK_FLAG = TRUE;
+        InitFlag->SEN_TASK_FLAG = TRUE;
+        vTaskDelay(250 / portTICK_PERIOD_MS);
+    }
+
+    if (InitFlag->COM_TASK_FLAG == TRUE && InitFlag->SEN_TASK_FLAG == TRUE)
+    {
+        Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_TRUE&SEN_TASK_FLAG_TRUE]:"));
+    }
+
     vTaskDelay(250 / portTICK_PERIOD_MS);
     Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/ENDED]"));
 }
