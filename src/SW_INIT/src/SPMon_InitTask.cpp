@@ -31,7 +31,7 @@ TaskHandle_t SPMon_MainTask_hdl = NULL;
 /* Semaphore handler defintion */
 SemaphoreHandle_t xInitSemaphore = NULL;
 /* Definition for initflags */
-InitFlags initFlag = {FALSE, FALSE};
+InitFlags initFlag = {FALSE, FALSE, FALSE, FALSE};
 
 /******************************************************************************************************
 * Function name: SPMon_InitTask_MainFunc

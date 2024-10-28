@@ -46,15 +46,9 @@
 #define TRUE 1u
 #define FALSE 0u
 
-typedef void (*TASK_FUNC)();
-
-typedef void (*FUNC_COM_TXRX)();
-typedef bool (*FUNC_COM_CTRL)();
-typedef uint8_t (*FUNC_COM_MON)();
-
-typedef float(*FUNC_SEN_MEAS)();
-typedef bool (*FUNC_SEN_CTRL)();
-typedef uint8_t (*FUNC_SEN_MON)();
+#define SEN_MEAS_TASK_PERIOD 1000u
+#define COM_TASK_PERIOD 1000u
+#define MAIN_TASK_PERIOD 1000u
 
 /* Sensor related errors*/
 typedef enum{
@@ -86,6 +80,8 @@ typedef enum{
 typedef struct{
 bool SEN_CALIB_FLAG;
 bool COM_INIT_FLAG;
+bool COM_TASK_FLAG;
+bool SEN_TASK_FLAG;
 }InitFlags;
 extern InitFlags initFlag; 
 
@@ -102,7 +98,6 @@ typedef struct{
   float ConValHum;
   float ConValLux;
 }SenorConvertedValues;
-
 
 /* Sensor data */
 typedef struct{
@@ -130,12 +125,16 @@ extern TaskHandle_t SPMon_InitTask_hdl;
 extern TaskHandle_t SPMon_SensCalibTask_hdl;
 extern TaskHandle_t SPMon_ComInitTask_hdl;
 extern TaskHandle_t SPMon_MainTask_hdl;
+extern TaskHandle_t SPMon_SenMeasTask_hdl;
+extern TaskHandle_t SPMon_ComTask_hdl;
 
 /* Declare task priority */
 static const uint8_t SPMon_InitTask_prio = 1;
 static const uint8_t SPMon_SensCalibTask_prio = 2;
 static const uint8_t SPMon_ComInitTask_prio = 3;
 static const uint8_t SPMon_MainTask_prio = 1;
+static const uint8_t SPMon_SenMeasTask_prio = 2;
+static const uint8_t SPMon_ComTask_prio = 3;
 
 /* Declare sempahore handler */
 extern SemaphoreHandle_t xInitSemaphore;
