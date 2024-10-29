@@ -25,10 +25,14 @@
 ******************************************************************************************************/
 #define ADC_PORT_LIGHT_SENS 1
 #define ADC_PORT_HUM_SENS 2
-#define ADC_PORT_TEMP_SENS 3
+#define ADC_PORT_LM_35 4
 
 #define ADC_MAX_VAL 4095u
 #define ADC_MIN_VAL 0u
+#define ADC_RESOLUTION 12u
+
+#define POWER_SUPPLY_VOLTAGE_5V 5000.00
+#define POWER_SUPPLY_VOLTAGE_3V3 3300.00
 
 #define MAX_VAL_TEMP 100u
 #define MIN_VAL_TEMP 0u
@@ -40,11 +44,19 @@
 #define MIN_VAL_LUX 0u
 
 #define CONV_FACTOR 4095u
-#define CONV_DIVISOR 12u
+#define CONV_DIVISOR 10u
 
 #define STACK_SIZE_BYTES 2048u
 #define TRUE 1u
 #define FALSE 0u
+
+#define LM35_CALIBRATION_OFFSET 8.5f
+#define LM35_MAX_SAMPLES 10u 
+#define LM35_CALIBRATION_PERIOD 1000u
+#define LM35_CALIBRATION_SAMPLES 10u
+#define LM35_ERROR_THRESHOLD 5.5f
+
+#define FAULT_SENS_COUNTER 3u
 
 #define SEN_MEAS_TASK_PERIOD 1000u
 #define COM_TASK_PERIOD 1000u
@@ -52,9 +64,15 @@
 
 /* Sensor related errors*/
 typedef enum{
-  SEN_ERROR_UNDERVOLATGE = 0u,
+  SEN_ERROR_NO_ERROR = 0u,
+  SEN_ERROR_UNDERVOLATGE,
   SEN_ERROR_OVERVOLTAGE,
-  SEN_ERROR_NO_ADC_DATA
+  SEN_ERROR_NO_RESPONSE,
+  SEN_ERROR_NO_CALIBRATION,
+  SEN_ERROR_CALIBRATION_ERROR,
+  SEN_ERROR_NO_MEASUREMENT,
+  SEN_ERROR_MEASUREMENT_ERROR,
+  SEN_ERROR_ADC_ERROR
 }SensorElectricalError;
 
 /* Sensor list*/
@@ -87,14 +105,14 @@ extern InitFlags initFlag;
 
 /* Raw sensor values */
 typedef struct{
- uint8_t RawAdc_TempVal;
+ uint16_t RawAdc_TempVal_LM35;
  uint8_t RawAdc_HumVal;
  uint8_t RawAdc_LuxVal;
 }SenorRawValues;
 
 /* Converted sensor values */
 typedef struct{
-  float ConValTemp;
+  float ConValTempLM35;
   float ConValHum;
   float ConValLux;
 }SenorConvertedValues;

@@ -4,7 +4,7 @@
 * File name: SPMon.ino
 * Descr: Main file of the project, contains the initalisation and setup for the components
 *
-*
+*@brief: NOTE, we can add built in Hall sensor  ?
 *
 *
 *
