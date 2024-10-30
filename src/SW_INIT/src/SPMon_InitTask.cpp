@@ -41,7 +41,7 @@ InitFlags initFlag = {FALSE, FALSE, FALSE, FALSE};
 ******************************************************************************************************/
 void SPMon_InitTask_MainFunc(void *parameter) 
 {
-  Serial.println(F("[INIT_TASK_MAIN_FUNC_STARTED]"));
+  // Serial.println(F("[INIT_TASK_MAIN_FUNC_STARTED]"));
 
   bool local_val_suspendTask = FALSE;
   
@@ -49,7 +49,7 @@ void SPMon_InitTask_MainFunc(void *parameter)
   if (INIT_RES == TRUE) 
   {
 
-    Serial.println(F("[AFTER_CHECK_INIT_DATA]"));
+    // Serial.println(F("[AFTER_CHECK_INIT_DATA]"));
 
     /* Create semaphore to trigger SENS/COM INIT Tasks */
     xInitSemaphore = xSemaphoreCreateBinary();
@@ -58,7 +58,7 @@ void SPMon_InitTask_MainFunc(void *parameter)
     /* Check the creation of the sempahore */
     if (xInitSemaphore != NULL) 
     {
-      Serial.println(F("[INIT_SEMAPHORE_CREATED]"));
+      // Serial.println(F("[INIT_SEMAPHORE_CREATED]"));
 
       /* Create the tasks for SenCalib and ComInit*/
       senCal.SPMon_SensCalibTask_CreateSensCalibTask();
@@ -79,7 +79,7 @@ void SPMon_InitTask_MainFunc(void *parameter)
       /* Check if the tasks are completed, we can suspend the init task*/
       if(initFlagPtr->SEN_CALIB_FLAG == TRUE && initFlagPtr->COM_INIT_FLAG == TRUE)
       {
-        Serial.println(F("[SENS_COM_INIT_&_COM_INIT_COMPLETED]"));
+        // Serial.println(F("[SENS_COM_INIT_&_COM_INIT_COMPLETED]"));
         spmonMain.SPMon_MainTask_CreateMainTask();
         local_val_suspendTask = TRUE;
       }
@@ -98,7 +98,7 @@ void SPMon_InitTask_MainFunc(void *parameter)
   if(local_val_suspendTask == TRUE)
   {
     vTaskDelay(500 / portTICK_PERIOD_MS);
-    Serial.println(F("[INIT_TASK_COMPLETED]"));
+    // Serial.println(F("[INIT_TASK_COMPLETED]"));
     vTaskSuspend(NULL);
   }
 
@@ -114,6 +114,21 @@ bool SPMonInitTask::SPMon_InitTask_CheckInitData(void *parameter)
 {
   /* Convert the paramater to TaskStateMng type */
   TaskStateMng *taskState = (TaskStateMng *)parameter;
+
+  /* Initialize data  in oder to avoid garbage values or null pointers */
+  // taskState->InitTaskState = 0;
+  // taskState->SensCalibState = 0;
+  // taskState->ComInitTaskState = 0;
+  // taskState->SenMeasTaskState = SENS_MEAS_STATE_OFF;
+
+  // initFlag.SEN_CALIB_FLAG = FALSE;
+  // initFlag.COM_INIT_FLAG = FALSE;
+  // initFlag.COM_TASK_FLAG = FALSE;
+  // initFlag.SEN_TASK_FLAG = FALSE;
+
+  // SensorRawValues rawValues = {0};
+  // SensorConvertedValues convertedValues = {0};
+  // SensorErrorMonitoring sensorError = {SENS_TEMP_LM_35, SEN_ERROR_NO_ERROR, false, 0};
 
   bool init_res = false;
   if (eTaskGetState(SPMon_InitTask_hdl) == 0) 
@@ -168,11 +183,11 @@ void SPMonInitTask::SPMon_InitTask_CreateInitTask()
         0)
       == pdPASS) 
   {
-    Serial.println(F("[INIT_TASK_CREATED]"));
+    // Serial.println(F("[INIT_TASK_CREATED]"));
   } 
   else 
   {
-    Serial.println(F("[ERROR] Failed to create INIT_TASK"));
+    // Serial.println(F("[ERROR] Failed to create INIT_TASK"));
 
   }
 }

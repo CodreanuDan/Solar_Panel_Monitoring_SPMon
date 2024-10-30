@@ -33,8 +33,11 @@ void SPMon_MainTask_MainFunc(void *parameter)
 {
   for(;;)
   {
-    Serial.println(F("[MAIN_TASK_MAIN_FUNC/called_once_per_second]"));
-    spmonMain.SPMon_MainTask_ExecuteStateLogic(&initFlag);
+    // Serial.println(F("[MAIN_TASK_MAIN_FUNC/called_once_per_second]"));
+    /* Declare local variables */
+    TaskStateMng taskState;
+    /* Execute the state machine */
+    spmonMain.SPMon_MainTask_ExecuteStateLogic(&initFlag, &taskState);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
  
@@ -46,12 +49,12 @@ void SPMon_MainTask_MainFunc(void *parameter)
 * Params:
 *
 ******************************************************************************************************/
-void SPMonMainTask::SPMon_MainTask_ExecuteStateLogic(InitFlags * InitFlag)
+void SPMonMainTask::SPMon_MainTask_ExecuteStateLogic(InitFlags * InitFlag, TaskStateMng * TaskState)
 {
-    Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/STARTED]"));
+    // Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/STARTED]"));
     if(InitFlag->COM_TASK_FLAG == FALSE && InitFlag->SEN_TASK_FLAG == FALSE)
     {
-        Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_FALSE&SEN_TASK_FLAG_FALSE]"));
+        // Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_FALSE&SEN_TASK_FLAG_FALSE]"));
         InitFlag->COM_TASK_FLAG = TRUE;
         InitFlag->SEN_TASK_FLAG = TRUE;
         vTaskDelay(250 / portTICK_PERIOD_MS);
@@ -60,12 +63,24 @@ void SPMonMainTask::SPMon_MainTask_ExecuteStateLogic(InitFlags * InitFlag)
     /* Here is the main logic of the measurement and data transmission process*/
     if (InitFlag->COM_TASK_FLAG == TRUE && InitFlag->SEN_TASK_FLAG == TRUE)
     {
-        Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_TRUE&SEN_TASK_FLAG_TRUE]:"));
-        sensor_measurement.SPMon_SenMeasTask_CreateSenMeasTaskTask();
+        // Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/COM_TASK_FLAG_TRUE&SEN_TASK_FLAG_TRUE]:"));
+        if(!sensor_measurement.SPMon_SenMeasTask_CreateSenMeasTaskTask())
+        {
+            TaskState->SenMeasTaskState = SENS_MEAS_STATE_OFF;
+        }
+        else
+        {
+            TaskState->SenMeasTaskState = SENS_MEAS_STATE_MEAS;
+        }
+    }
+    else
+    {
+        InitFlag->COM_TASK_FLAG = FALSE;
+        InitFlag->SEN_TASK_FLAG = FALSE;
     }
 
     vTaskDelay(MAIN_TASK_PERIOD / portTICK_PERIOD_MS);
-    Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/ENDED]"));
+    // Serial.println(F("[SPMon_MainTask_ExecuteStateLogic/ENDED]"));
 
 }
 
@@ -96,10 +111,10 @@ void SPMonMainTask::SPMon_MainTask_CreateMainTask()
         0                
     ) == pdPASS)
     {
-        Serial.println(F("[MAIN_TASK_CREATED]"));
+        // Serial.println(F("[MAIN_TASK_CREATED]"));
     } 
     else 
     {
-        Serial.println(F("[ERROR] Failed to create MAIN_TASK_"));
+        // Serial.println(F("[ERROR] Failed to create MAIN_TASK_"));
     }
 }

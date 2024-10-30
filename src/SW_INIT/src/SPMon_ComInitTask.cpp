@@ -30,14 +30,14 @@
 ******************************************************************************************************/
 void SPMon_ComInitTask_MainFunc(void *parameter)
 {
-  Serial.println(F("[COM_INIT_TASK_MAIN_FUNC_STARTED]"));
+  // Serial.println(F("[COM_INIT_TASK_MAIN_FUNC_STARTED]"));
   SPMon_TaskInitParams *taskParams = (SPMon_TaskInitParams*)parameter;
   TaskStateMng *taskState = taskParams->taskState;
   SemaphoreHandle_t xSemaphore = taskParams->xSemaphore;
 
   if (xSemaphoreTake(xSemaphore, portMAX_DELAY)) 
   {
-      Serial.println(F("[COM_INIT_TASK_TOOK_SEMAPHORE]"));
+      // Serial.println(F("[COM_INIT_TASK_TOOK_SEMAPHORE]"));
       vTaskDelay(250 / portTICK_PERIOD_MS);
       taskState->ComInitTaskState = eTaskGetState(SPMon_ComInitTask_hdl);
 
@@ -48,7 +48,7 @@ void SPMon_ComInitTask_MainFunc(void *parameter)
         /* Call the init function and begin wifi connection */
         comInit.SPMon_ComInitTaks_ComInitFunction(&initFlag);
 
-        Serial.println(F("[COM_INIT_TASK_COMPLETED]"));
+        // Serial.println(F("[COM_INIT_TASK_COMPLETED]"));
         vTaskSuspend(NULL);
         taskState->ComInitTaskState = eTaskGetState(SPMon_ComInitTask_hdl);
       }
@@ -56,7 +56,7 @@ void SPMon_ComInitTask_MainFunc(void *parameter)
   }
   else 
   {
-      Serial.println(F("[ERROR] Failed to take semaphore in ComInitTask"));
+      // Serial.println(F("[ERROR] Failed to take semaphore in ComInitTask"));
   }
 
 }
@@ -96,11 +96,11 @@ void SPMonComInitTask::SPMon_ComInitTask_CreateComInitTask()
         0                
     ) == pdPASS)
     {
-        Serial.println(F("[COM_INIT_TASK_CREATED]"));
+        // Serial.println(F("[COM_INIT_TASK_CREATED]"));
     } 
     else 
     {
-        Serial.println(F("[ERROR] Failed to create COM_INIT_TASK"));
+        // Serial.println(F("[ERROR] Failed to create COM_INIT_TASK"));
     }
 }
 
@@ -112,13 +112,13 @@ void SPMonComInitTask::SPMon_ComInitTask_CreateComInitTask()
 ******************************************************************************************************/
 void SPMonComInitTask::SPMon_ComInitTaks_ComInitFunction(InitFlags * InitFlag)
 {
-  Serial.println(F("[SPMon_ComInitTaks_ComInitFunction/STARTED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_ComInitFunction/STARTED]"));
   InitFlag->COM_INIT_FLAG = TRUE;
-  Serial.println(F("[COM_INIT_FLAG_SET]"));
+  // Serial.println(F("[COM_INIT_FLAG_SET]"));
   comInit.SPMon_ComInitTaks_EstablishWiFiComm();
   comInit.SPMon_ComInitTaks_CheckComInit();
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_ComInitTaks_ComInitFunction/ENDED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_ComInitFunction/ENDED]"));
 }
 
 /******************************************************************************************************
@@ -129,9 +129,9 @@ void SPMonComInitTask::SPMon_ComInitTaks_ComInitFunction(InitFlags * InitFlag)
 ******************************************************************************************************/
 void SPMonComInitTask::SPMon_ComInitTaks_EstablishWiFiComm()
 {
-  Serial.println(F("[SPMon_ComInitTaks_EstablishWiFiComm/STARTED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_EstablishWiFiComm/STARTED]"));
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_ComInitTaks_EstablishWiFiComm/ENDED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_EstablishWiFiComm/ENDED]"));
 }
 
 
@@ -143,7 +143,7 @@ void SPMonComInitTask::SPMon_ComInitTaks_EstablishWiFiComm()
 ******************************************************************************************************/
 void SPMonComInitTask::SPMon_ComInitTaks_CheckComInit()
 {
-  Serial.println(F("[SPMon_ComInitTaks_CheckComInit/STARTED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_CheckComInit/STARTED]"));
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_ComInitTaks_CheckComInit/ENDED]"));
+  // Serial.println(F("[SPMon_ComInitTaks_CheckComInit/ENDED]"));
 }

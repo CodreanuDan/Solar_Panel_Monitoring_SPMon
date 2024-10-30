@@ -24,8 +24,9 @@
  * Return: 
  *  
  *******************************************************************************************************/
-void SPMon_LM35_Sensor_Library::LM35_GetTemp(SenorRawValues * sensorRawValues, SenorConvertedValues * sensorConvertedValues, SensorErrorMonitoring * sensorError)
+void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues, SensorErrorMonitoring * sensorError)
 {
+    Serial.println("LM35_GetTemp started");
     /* Convert the raw data to milivolts */
     float miliVolts_adcConv = (sensorRawValues->RawAdc_TempVal_LM35 * POWER_SUPPLY_VOLTAGE_3V3) / ADC_MAX_VAL;
     float miliVolts = analogReadMilliVolts(ADC_PORT_LM_35);
@@ -33,7 +34,7 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SenorRawValues * sensorRawValues, S
     if ((miliVolts_adcConv + miliVolts) / 2 > ADC_MIN_VAL && (miliVolts_adcConv + miliVolts) / 2 < ADC_MAX_VAL)
     {
         /* Convert the raw data from the ADC to temperature in Celsius */
-        sampleValue = (miliVolts / CONV_DIVISOR) - LM35_CALIBRATION_OFFSET;
+        float sampleValue = (miliVolts / CONV_DIVISOR) - LM35_CALIBRATION_OFFSET;
         sensorError->ErrorType = SEN_ERROR_NO_ERROR;
         /* Array to store the average values */
         uint8_t avg_val[LM35_MAX_SAMPLES];
@@ -47,7 +48,7 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SenorRawValues * sensorRawValues, S
         /* Calculate the average value */
         avg_temp = avg_temp / LM35_MAX_SAMPLES;
         /* Check if the temperature is in the range */
-        if (avg_temp > MAX_VAL_TEMP || avg_temp < MIN_VAL_TEMP ||avg_temp > LM35_ERROR_THRESHOLD || avg_temp < -LM35_ERROR_THRESHOLD)
+        if (avg_temp > MAX_VAL_TEMP || avg_temp < MIN_VAL_TEMP)
         {
             sensorError->SensorType = SENS_TEMP_LM_35;
             sensorError->ErrorType = SEN_ERROR_MEASUREMENT_ERROR;
@@ -71,6 +72,9 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SenorRawValues * sensorRawValues, S
         sensorError->ErrorType = SEN_ERROR_OVERVOLTAGE;
         sensorError->FaultSensCouter++;
     }
+    
+    Serial.println(sensorConvertedValues->ConValTempLM35); 
+    Serial.println("LM35_GetTemp ended");
 
 }
 
@@ -83,6 +87,9 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SenorRawValues * sensorRawValues, S
  *******************************************************************************************************/
 void SPMon_LM35_Sensor_Library::LM35_Calib(uint8_t sensorPin, uint8_t adcResolution, uint8_t adcAttenuation)
 {   
+    Serial.println("LM35 Calibration started");
+    /* Mark pin as input */
+    pinMode(sensorPin, INPUT);
     /* Attach the LM35 sensor pin to the ADC */
     adcAttachPin(sensorPin);
     /* Set the ADC resolution to 12 bits */
@@ -92,7 +99,9 @@ void SPMon_LM35_Sensor_Library::LM35_Calib(uint8_t sensorPin, uint8_t adcResolut
     ADC_2_5db: ~~> 1.5V
     ADC_6db:   ~~> 2.2V
     ADC_11db:  ~~> 3.3V */
-    analogSetPinAttenuation(sensorPin, adcAttenuation);
+    /* {!!!} use static cast for adcAttenuation beacuse the func expects elements from adc_attenuation_t enum */
+    analogSetPinAttenuation(sensorPin, static_cast<adc_attenuation_t>(adcAttenuation));
+    Serial.println("LM35 Calibration ended");
 }
 
 /******************************************************************************************************
@@ -102,17 +111,21 @@ void SPMon_LM35_Sensor_Library::LM35_Calib(uint8_t sensorPin, uint8_t adcResolut
  * Return: 
  *  
  *******************************************************************************************************/
-void SPMon_LM35_Sensor_Library::LM35_GetRawData(SenorRawValues * sensorRawValues)
+void SPMon_LM35_Sensor_Library::LM35_GetRawData(SensorRawValues * sensorRawValues)
 {
+
+    Serial.println("LM35_GetRawData started");
     /* Read the raw data from the LM35 sensor */
     uint16_t adcData = analogRead(ADC_PORT_LM_35);
     if( adcData < ADC_MIN_VAL && adcData > ADC_MAX_VAL)
     {
         sensorRawValues->RawAdc_TempVal_LM35 = adcData;
+        Serial.println(sensorRawValues->RawAdc_TempVal_LM35); 
     }
     else
     {
 
     }
+    Serial.println("LM35_GetRawData ended");
      
 }

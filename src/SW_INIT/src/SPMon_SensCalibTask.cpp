@@ -9,7 +9,7 @@
 *
 *
 *
-* Version: 1.0, 26.10.2024
+* Version: 1.1 , 30.10.2024
 ******************************************************************************************************/
 
 /******************************************************************************************************
@@ -17,6 +17,7 @@
 ******************************************************************************************************/
 #include "SPMon_DataTypes.h"
 #include "SPMon_SensCalibTask.h"
+#include "SPMon_lm35_lib.h"
 
 /******************************************************************************************************
 * FILE LOCAL VARIABLES 
@@ -31,7 +32,7 @@
 void SPMon_SensCalibTask_MainFunc(void *parameter)
 {
 
-  Serial.println(F("[SENS_CALIB_TASK_MAIN_FUNC_STARTED]"));
+  // Serial.println(F("[SENS_CALIB_TASK_MAIN_FUNC_STARTED]"));
 
   SPMon_TaskInitParams *taskParamsPtr = (SPMon_TaskInitParams*)parameter;
   TaskStateMng *taskStatePtr = taskParamsPtr->taskState;
@@ -40,7 +41,7 @@ void SPMon_SensCalibTask_MainFunc(void *parameter)
 
   if (xSemaphoreTake(xSemaphore, portMAX_DELAY)) 
   {
-    Serial.println(F("[SENS_CALIB_TASK_TOOK_SEMAPHORE]"));
+    // Serial.println(F("[SENS_CALIB_TASK_TOOK_SEMAPHORE]"));
     delay(250);
     taskStatePtr->SensCalibState = eTaskGetState(SPMon_SensCalibTask_hdl);
 
@@ -49,7 +50,7 @@ void SPMon_SensCalibTask_MainFunc(void *parameter)
       vTaskDelay(100 / portTICK_PERIOD_MS);
       /* Call the function and begin sensor calibration */
       senCal.SPMon_SensCalibTask_SensCalibFunction(&initFlag);
-      Serial.println(F("[SENS_CALIB_TASK_COMPLETED]"));
+      // Serial.println(F("[SENS_CALIB_TASK_COMPLETED]"));
       vTaskSuspend(NULL);
       taskStatePtr->SensCalibState = eTaskGetState(SPMon_SensCalibTask_hdl);
     }
@@ -57,7 +58,7 @@ void SPMon_SensCalibTask_MainFunc(void *parameter)
   }
   else 
   {
-    Serial.println(F("[ERROR] Failed to take semaphore in SensCalibTask"));
+    // Serial.println(F("[ERROR] Failed to take semaphore in SensCalibTask"));
   }
 
 }
@@ -96,11 +97,11 @@ void SPMonSensCalibTask::SPMon_SensCalibTask_CreateSensCalibTask()
         1              
     ) == pdPASS)
     {
-        Serial.println(F("[SENS_CALIB_TASK_CREATED]"));
+        // Serial.println(F("[SENS_CALIB_TASK_CREATED]"));
     } 
     else 
     {
-        Serial.println(F("[ERROR] Failed to create SENS_CALIB_TASK"));
+        // Serial.println(F("[ERROR] Failed to create SENS_CALIB_TASK"));
     }
 }
 
@@ -112,13 +113,13 @@ void SPMonSensCalibTask::SPMon_SensCalibTask_CreateSensCalibTask()
 ******************************************************************************************************/
 void SPMonSensCalibTask::SPMon_SensCalibTask_SensCalibFunction(InitFlags * CalibFlag)
 {
-  Serial.println(F("[SPMon_SensCalibTask_SensCalibFunction/STARTED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_SensCalibFunction/STARTED]"));
   CalibFlag->SEN_CALIB_FLAG = TRUE;
-  Serial.println(F("[SEN_CALIB_FLAG_SET]"));
+  // Serial.println(F("[SEN_CALIB_FLAG_SET]"));
   senCal.SPMon_SensCalibTask_CalibrateSensors();
   senCal.SPMon_SensCalibTask_CheckCalibration();
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_SensCalibTask_SensCalibFunction/ENDED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_SensCalibFunction/ENDED]"));
 }
 
 /******************************************************************************************************
@@ -129,9 +130,10 @@ void SPMonSensCalibTask::SPMon_SensCalibTask_SensCalibFunction(InitFlags * Calib
 ******************************************************************************************************/
 void SPMonSensCalibTask::SPMon_SensCalibTask_CalibrateSensors()
 {
-  Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/STARTED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/STARTED]"));
+  lm35.LM35_Calib(ADC_PORT_LM_35, 12, ADC_6db);
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/ENDED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/ENDED]"));
 }
 
 /******************************************************************************************************
@@ -142,7 +144,7 @@ void SPMonSensCalibTask::SPMon_SensCalibTask_CalibrateSensors()
 ******************************************************************************************************/
 void SPMonSensCalibTask::SPMon_SensCalibTask_CheckCalibration()
 {
-  Serial.println(F("[SPMon_SensCalibTask_CheckCalibration/STARTED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_CheckCalibration/STARTED]"));
   vTaskDelay(250 / portTICK_PERIOD_MS);
-  Serial.println(F("[SPMon_SensCalibTask_CheckCalibration/ENDED]"));
+  // Serial.println(F("[SPMon_SensCalibTask_CheckCalibration/ENDED]"));
 }

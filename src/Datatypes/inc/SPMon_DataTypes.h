@@ -106,16 +106,16 @@ extern InitFlags initFlag;
 /* Raw sensor values */
 typedef struct{
  uint16_t RawAdc_TempVal_LM35;
- uint8_t RawAdc_HumVal;
- uint8_t RawAdc_LuxVal;
-}SenorRawValues;
+ uint16_t RawAdc_HumVal;
+ uint16_t RawAdc_LuxVal;
+}SensorRawValues;
 
 /* Converted sensor values */
 typedef struct{
   float ConValTempLM35;
   float ConValHum;
   float ConValLux;
-}SenorConvertedValues;
+}SensorConvertedValues;
 
 /* Sensor data */
 typedef struct{
@@ -130,6 +130,7 @@ typedef struct{
   uint8_t InitTaskState;
   uint8_t SensCalibState;
   uint8_t ComInitTaskState;
+  SenMeasStates SenMeasTaskState;
 }TaskStateMng;
 
 /* InitTaskSemaph */
