@@ -131,7 +131,7 @@ void SPMonSensCalibTask::SPMon_SensCalibTask_SensCalibFunction(InitFlags * Calib
 void SPMonSensCalibTask::SPMon_SensCalibTask_CalibrateSensors()
 {
   // Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/STARTED]"));
-  lm35.LM35_Calib(ADC_PORT_LM_35, 12, ADC_6db);
+  lm35.LM35_Calib(ADC_PORT_LM_35, 12, ADC_11db);
   vTaskDelay(250 / portTICK_PERIOD_MS);
   // Serial.println(F("[SPMon_SensCalibTask_CalibrateSensors/ENDED]"));
 }

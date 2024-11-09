@@ -50,7 +50,7 @@
 #define TRUE 1u
 #define FALSE 0u
 
-#define LM35_CALIBRATION_OFFSET 8.5f
+#define LM35_CALIBRATION_OFFSET 9.5f
 #define LM35_MAX_SAMPLES 10u 
 #define LM35_CALIBRATION_PERIOD 1000u
 #define LM35_CALIBRATION_SAMPLES 10u
@@ -61,6 +61,9 @@
 #define SEN_MEAS_TASK_PERIOD 1000u
 #define COM_TASK_PERIOD 1000u
 #define MAIN_TASK_PERIOD 1000u
+
+#define THERMO_COUPLE_CONVERSION_FACTOR 0.25f
+#define SPI_DELAY_US 50u
 
 /* Sensor related errors*/
 typedef enum{
@@ -74,6 +77,7 @@ typedef enum{
   SEN_ERROR_MEASUREMENT_ERROR,
   SEN_ERROR_ADC_ERROR
 }SensorElectricalError;
+extern SensorElectricalError SensorError;
 
 /* Sensor list*/
 typedef enum{
@@ -109,6 +113,7 @@ typedef struct{
  uint16_t RawAdc_HumVal;
  uint16_t RawAdc_LuxVal;
 }SensorRawValues;
+extern SensorRawValues RawValues;
 
 /* Converted sensor values */
 typedef struct{
@@ -116,6 +121,7 @@ typedef struct{
   float ConValHum;
   float ConValLux;
 }SensorConvertedValues;
+extern SensorConvertedValues ConvertedValues; 
 
 /* Sensor data */
 typedef struct{
@@ -132,6 +138,7 @@ typedef struct{
   uint8_t ComInitTaskState;
   SenMeasStates SenMeasTaskState;
 }TaskStateMng;
+extern TaskStateMng TaskState;
 
 /* InitTaskSemaph */
 typedef struct {

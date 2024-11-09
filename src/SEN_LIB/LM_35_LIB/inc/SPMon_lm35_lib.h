@@ -28,7 +28,7 @@
 class SPMon_LM35_Sensor_Library
 {
     public:
-        static void LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues, SensorErrorMonitoring * sensorError);
+        static void LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues);
         static void LM35_Calib(uint8_t sensorPin, uint8_t adcResolution, uint8_t adcAttenuation);
         static void LM35_GetRawData(SensorRawValues * sensorRawValues);
     private:

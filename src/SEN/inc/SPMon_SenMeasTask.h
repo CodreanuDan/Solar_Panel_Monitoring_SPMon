@@ -36,7 +36,7 @@ class SPMon_SensorMeasurementTask
 {
   public:
     static bool SPMon_SenMeasTask_CreateSenMeasTaskTask();
-    static void SPMon_SenMeasTask_ExecuteStateMachine(TaskStateMng *taskState);
+    static void SPMon_SenMeasTask_ExecuteStateMachine(TaskStateMng *taskState, SensorRawValues *rawValues, SensorConvertedValues *convertedValues);
   private:
     static bool taskCreated;
 };
@@ -57,7 +57,7 @@ class SPMon_SensorMeasurementTask_Interface
 {
   public:
     virtual void SPMon_SenMeasTask_GetRawData(SensorRawValues * rawValues) = 0;
-    virtual void SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues, SensorErrorMonitoring * sensorError) = 0;
+    virtual void SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues) = 0;
     virtual void SPMon_SenMeasTask_ErrorMonitor() = 0;
     /* Class destructor */
     virtual ~SPMon_SensorMeasurementTask_Interface() {};
@@ -76,7 +76,7 @@ class SPMon_SensorMeasurementTask_LM35: public SPMon_SensorMeasurementTask_Inter
   public:
     SPMon_SensorMeasurementTask_LM35();
     void SPMon_SenMeasTask_GetRawData(SensorRawValues * rawValues) override; 
-    void SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues, SensorErrorMonitoring * sensorError) override;
+    void SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues) override;
     void SPMon_SenMeasTask_ErrorMonitor() override;
 };
 

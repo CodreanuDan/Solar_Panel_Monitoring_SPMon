@@ -115,33 +115,18 @@ bool SPMonInitTask::SPMon_InitTask_CheckInitData(void *parameter)
   /* Convert the paramater to TaskStateMng type */
   TaskStateMng *taskState = (TaskStateMng *)parameter;
 
-  /* Initialize data  in oder to avoid garbage values or null pointers */
-  // taskState->InitTaskState = 0;
-  // taskState->SensCalibState = 0;
-  // taskState->ComInitTaskState = 0;
-  // taskState->SenMeasTaskState = SENS_MEAS_STATE_OFF;
-
-  // initFlag.SEN_CALIB_FLAG = FALSE;
-  // initFlag.COM_INIT_FLAG = FALSE;
-  // initFlag.COM_TASK_FLAG = FALSE;
-  // initFlag.SEN_TASK_FLAG = FALSE;
-
-  // SensorRawValues rawValues = {0};
-  // SensorConvertedValues convertedValues = {0};
-  // SensorErrorMonitoring sensorError = {SENS_TEMP_LM_35, SEN_ERROR_NO_ERROR, false, 0};
-
-  bool init_res = false;
+  bool init_res = TRUE;
   if (eTaskGetState(SPMon_InitTask_hdl) == 0) 
   {
     if (initFlag.SEN_CALIB_FLAG == FALSE && initFlag.COM_INIT_FLAG == FALSE) 
     {
       taskState->InitTaskState = eTaskGetState(SPMon_InitTask_hdl);
-      init_res = true;
+      init_res = TRUE;
     } 
     else 
     {
       taskState->InitTaskState = eTaskGetState(SPMon_InitTask_hdl);
-      init_res = false;
+      init_res = FALSE;
     }
   } 
   else 

@@ -36,7 +36,7 @@ void SPMon_SenMeasTask_MainFunc(void *parameter)
   {
     Serial.println(F("[SEN_MEAS_TASK_MAIN_FUNC/called_once_per_second]"));
     /* Execute the state machine */
-    sensor_measurement.SPMon_SenMeasTask_ExecuteStateMachine((TaskStateMng *)parameter);
+    sensor_measurement.SPMon_SenMeasTask_ExecuteStateMachine(&TaskState, &RawValues, &ConvertedValues);
     vTaskDelay(SEN_MEAS_TASK_PERIOD / portTICK_PERIOD_MS);
   }
 }
@@ -48,7 +48,7 @@ void SPMon_SenMeasTask_MainFunc(void *parameter)
  * Returns: none
  *
  * ******************************************************************************************************/
-void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStateMng *taskState)
+void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStateMng *taskState, SensorRawValues *rawValues, SensorConvertedValues *convertedValues)
 {
   Serial.println(F("[SPMon_SenMeasTask_ExecuteStateMachine]"));
   vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -73,10 +73,7 @@ void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStat
         if (object != nullptr)
         {
           /* Call the function */
-          SensorRawValues localRawValues = {0}; // Initialize to zero
-          object->SPMon_SenMeasTask_GetRawData(&localRawValues);
-          Serial.print(F("[RAW_DATA]: "));
-          Serial.println(localRawValues.RawAdc_TempVal_LM35); // Print raw data
+          object->SPMon_SenMeasTask_GetRawData(rawValues);
           /* Delete the object */
           delete object;
         }
@@ -95,12 +92,7 @@ void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStat
         if (object != nullptr)
         {
           /* Call the function */
-          SensorRawValues localRawValues = {0}; // Initialize to zero
-          SensorConvertedValues localConvertedValues = {0}; // Initialize to zero
-          SensorErrorMonitoring localSensorError = {SENS_TEMP_LM_35, SEN_ERROR_NO_ERROR, false, 0}; // Initialize to default values
-          object->SPMon_SenMeasTask_ConvertData(&localRawValues, &localConvertedValues, &localSensorError);
-          Serial.print(F("[CONVERTED_DATA]: "));
-          Serial.println(localConvertedValues.ConValTempLM35); // Print converted data
+          object->SPMon_SenMeasTask_ConvertData(rawValues, convertedValues);
           /* Delete the object */
           delete object;
         }
@@ -133,6 +125,7 @@ bool SPMon_SensorMeasurementTask::SPMon_SenMeasTask_CreateSenMeasTaskTask()
   /* Check if the task is created */
   if (!taskCreated)
   {
+
     /* Create task */
     if (xTaskCreatePinnedToCore(
             /* Task main function */
@@ -142,7 +135,7 @@ bool SPMon_SensorMeasurementTask::SPMon_SenMeasTask_CreateSenMeasTaskTask()
             /* Stack size (bytes) */
             STACK_SIZE_BYTES,
             /* Parameter */
-            new TaskStateMng(), // Pass a new TaskStateMng instance
+            NULL, 
             /* Task priority */
             SPMon_SenMeasTask_prio,
             /* Task handler */
@@ -209,13 +202,13 @@ void SPMon_SensorMeasurementTask_LM35::SPMon_SenMeasTask_GetRawData(SensorRawVal
  *         SensorErrorMonitoring * sensorError - pointer to the sensor error structure
  *
  * *****************************************************************************************************/
-void SPMon_SensorMeasurementTask_LM35::SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues, SensorErrorMonitoring * sensorError)
+void SPMon_SensorMeasurementTask_LM35::SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues)
 {
-  if (rawValues != nullptr && convertedValues != nullptr && sensorError != nullptr)
+  if (rawValues != nullptr && convertedValues != nullptr)
   {
     /* Convert raw data from the LM35 sensor */
     Serial.print(F("[LM35_CONVERT_DATA]: "));
-    lm35.LM35_GetTemp(rawValues, convertedValues, sensorError);
+    lm35.LM35_GetTemp(rawValues, convertedValues);
     Serial.println(convertedValues->ConValTempLM35); // Print converted data
   }
   else

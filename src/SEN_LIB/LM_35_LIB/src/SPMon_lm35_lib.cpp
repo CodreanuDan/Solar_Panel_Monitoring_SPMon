@@ -24,7 +24,7 @@
  * Return: 
  *  
  *******************************************************************************************************/
-void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues, SensorErrorMonitoring * sensorError)
+void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues)
 {
     Serial.println("LM35_GetTemp started");
     /* Convert the raw data to milivolts */
@@ -34,8 +34,7 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, 
     if ((miliVolts_adcConv + miliVolts) / 2 > ADC_MIN_VAL && (miliVolts_adcConv + miliVolts) / 2 < ADC_MAX_VAL)
     {
         /* Convert the raw data from the ADC to temperature in Celsius */
-        float sampleValue = (miliVolts / CONV_DIVISOR) - LM35_CALIBRATION_OFFSET;
-        sensorError->ErrorType = SEN_ERROR_NO_ERROR;
+        float sampleValue = (miliVolts / CONV_DIVISOR) + LM35_CALIBRATION_OFFSET;
         /* Array to store the average values */
         uint8_t avg_val[LM35_MAX_SAMPLES];
         /* Variable to calculate the average value */
@@ -50,9 +49,6 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, 
         /* Check if the temperature is in the range */
         if (avg_temp > MAX_VAL_TEMP || avg_temp < MIN_VAL_TEMP)
         {
-            sensorError->SensorType = SENS_TEMP_LM_35;
-            sensorError->ErrorType = SEN_ERROR_MEASUREMENT_ERROR;
-            sensorError->FaultSensCouter++;
         }
         else
         {
@@ -62,19 +58,15 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, 
     }
     else if ((miliVolts_adcConv + miliVolts) / 2 < ADC_MIN_VAL)
     {
-        sensorError->SensorType = SENS_TEMP_LM_35;
-        sensorError->ErrorType = SEN_ERROR_UNDERVOLATGE;
-        sensorError->FaultSensCouter++;
+
     }
     else if ((miliVolts_adcConv + miliVolts) / 2 > ADC_MAX_VAL)
     {
-        sensorError->SensorType = SENS_TEMP_LM_35;
-        sensorError->ErrorType = SEN_ERROR_OVERVOLTAGE;
-        sensorError->FaultSensCouter++;
+
     }
     
-    Serial.println(sensorConvertedValues->ConValTempLM35); 
-    Serial.println("LM35_GetTemp ended");
+    // Serial.println(sensorConvertedValues->ConValTempLM35); 
+    // Serial.println("LM35_GetTemp ended");
 
 }
 
@@ -117,15 +109,8 @@ void SPMon_LM35_Sensor_Library::LM35_GetRawData(SensorRawValues * sensorRawValue
     Serial.println("LM35_GetRawData started");
     /* Read the raw data from the LM35 sensor */
     uint16_t adcData = analogRead(ADC_PORT_LM_35);
-    if( adcData < ADC_MIN_VAL && adcData > ADC_MAX_VAL)
-    {
-        sensorRawValues->RawAdc_TempVal_LM35 = adcData;
-        Serial.println(sensorRawValues->RawAdc_TempVal_LM35); 
-    }
-    else
-    {
-
-    }
+    sensorRawValues->RawAdc_TempVal_LM35 = adcData;
+    Serial.println(sensorRawValues->RawAdc_TempVal_LM35); 
     Serial.println("LM35_GetRawData ended");
      
 }
