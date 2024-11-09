@@ -18,6 +18,7 @@
 #include "SPMon_DataTypes.h"
 #include "SPMon_SensCalibTask.h"
 #include "SPMon_lm35_lib.h"
+#include "SPMon_MxThcpl_lib.h"
 
 /******************************************************************************************************
 * FILE LOCAL VARIABLES 

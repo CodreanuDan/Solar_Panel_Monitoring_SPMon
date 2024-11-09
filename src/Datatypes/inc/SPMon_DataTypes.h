@@ -25,7 +25,6 @@
 ******************************************************************************************************/
 #define ADC_PORT_LIGHT_SENS 1
 #define ADC_PORT_HUM_SENS 2
-#define ADC_PORT_LM_35 4
 
 #define ADC_MAX_VAL 4095u
 #define ADC_MIN_VAL 0u
@@ -50,20 +49,30 @@
 #define TRUE 1u
 #define FALSE 0u
 
+/*******************************************************/
+/* LM35 Sensor related defines */
+#define ADC_PORT_LM_35 4
 #define LM35_CALIBRATION_OFFSET 9.5f
 #define LM35_MAX_SAMPLES 10u 
 #define LM35_CALIBRATION_PERIOD 1000u
 #define LM35_CALIBRATION_SAMPLES 10u
 #define LM35_ERROR_THRESHOLD 5.5f
+/*******************************************************/
 
+/*******************************************************/
+/* SPI related defines */
+#define SPI_PIN_SCLK   18
+#define SPI_PIN_CS     5
+#define SPI_PIN_MISO   19
+#define THERMOCOUPLE_CONVERSION_FACTOR 0.25f
+#define SPI_DELAY_US 50u
+/*******************************************************/
 #define FAULT_SENS_COUNTER 3u
 
 #define SEN_MEAS_TASK_PERIOD 1000u
 #define COM_TASK_PERIOD 1000u
 #define MAIN_TASK_PERIOD 1000u
 
-#define THERMO_COUPLE_CONVERSION_FACTOR 0.25f
-#define SPI_DELAY_US 50u
 
 /* Sensor related errors*/
 typedef enum{
@@ -110,6 +119,7 @@ extern InitFlags initFlag;
 /* Raw sensor values */
 typedef struct{
  uint16_t RawAdc_TempVal_LM35;
+ byte thCplRawData;
  uint16_t RawAdc_HumVal;
  uint16_t RawAdc_LuxVal;
 }SensorRawValues;
@@ -117,7 +127,8 @@ extern SensorRawValues RawValues;
 
 /* Converted sensor values */
 typedef struct{
-  float ConValTempLM35;
+  float_t ConValTempLM35;
+  float_t thCplConvData;
   float ConValHum;
   float ConValLux;
 }SensorConvertedValues;

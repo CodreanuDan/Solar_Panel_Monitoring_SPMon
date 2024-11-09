@@ -82,5 +82,24 @@ class SPMon_SensorMeasurementTask_LM35: public SPMon_SensorMeasurementTask_Inter
 
 extern SPMon_SensorMeasurementTask_LM35 senMeaslm35;
 
+/******************************************************************************************************
+ * Class name: class SPMon_SensorMeasurmentTask_MAXTCHPL
+ * Descr: Derived class containing the prototypes for functions needed for the sensor measurement task
+ *       - contains the functions for the MAXTCHPL sensor
+ *       - inherits from the SPMon_SensorMeasurementTask_Interface class
+ *      - implements the pure virtual functions from the SPMon_SensorMeasurementTask_Interface class
+ * 
+ * ******************************************************************************************************/
+class SPMon_SensorMeasurementTask_MAXTCHPL: public SPMon_SensorMeasurementTask_Interface
+{
+  public:
+    SPMon_SensorMeasurementTask_MAXTCHPL();
+    void SPMon_SenMeasTask_GetRawData(SensorRawValues * rawValues) override;
+    void SPMon_SenMeasTask_ConvertData(SensorRawValues * rawValues, SensorConvertedValues * convertedValues) override;
+    void SPMon_SenMeasTask_ErrorMonitor() override;
+};
+
+extern SPMon_SensorMeasurementTask_MAXTCHPL senMeasMAXTCHPL;
+
 /******************************************************************************************************/
 #endif  /* SPMON_SENMEASTASK_H */ 

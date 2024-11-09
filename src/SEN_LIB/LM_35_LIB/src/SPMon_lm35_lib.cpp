@@ -20,6 +20,9 @@
 /******************************************************************************************************
  * Function name: LM35_GetTemp
  * Descr: Function that converts the raw data from the LM35 sensor to temperature
+ *        Read the raw data from the struct RawValues and convert it to temperature
+ *        Convert the raw data to milivolts
+ *        Compute the final temperature value by taking the average of the samples from oversampling
  * Params: sensorRawValues, sensorConvertedValues, sensorError
  * Return: 
  *  
@@ -99,6 +102,7 @@ void SPMon_LM35_Sensor_Library::LM35_Calib(uint8_t sensorPin, uint8_t adcResolut
 /******************************************************************************************************
  * Function name: LM35_GetRawData
  * Descr: Function that converts the raw data from the LM35 sensor to temperature
+ *        Read raw data from adc port using analogRead and setting for the ADC data aquisition
  * Params: sensorRawValues
  * Return: 
  *  
