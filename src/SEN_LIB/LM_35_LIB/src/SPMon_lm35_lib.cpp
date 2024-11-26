@@ -29,7 +29,7 @@
  *******************************************************************************************************/
 void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, SensorConvertedValues * sensorConvertedValues)
 {
-    Serial.println("LM35_GetTemp started");
+    // Serial.println("LM35_GetTemp started");
     /* Convert the raw data to milivolts */
     float miliVolts_adcConv = (sensorRawValues->RawAdc_TempVal_LM35 * POWER_SUPPLY_VOLTAGE_3V3) / ADC_MAX_VAL;
     float miliVolts = analogReadMilliVolts(ADC_PORT_LM_35);
@@ -37,7 +37,7 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, 
     if ((miliVolts_adcConv + miliVolts) / 2 > ADC_MIN_VAL && (miliVolts_adcConv + miliVolts) / 2 < ADC_MAX_VAL)
     {
         /* Convert the raw data from the ADC to temperature in Celsius */
-        float sampleValue = (miliVolts / CONV_DIVISOR) + LM35_CALIBRATION_OFFSET;
+        float sampleValue = (miliVolts / CONV_DIVISOR) - LM35_CALIBRATION_OFFSET;
         /* Array to store the average values */
         uint8_t avg_val[LM35_MAX_SAMPLES];
         /* Variable to calculate the average value */
@@ -68,9 +68,37 @@ void SPMon_LM35_Sensor_Library::LM35_GetTemp(SensorRawValues * sensorRawValues, 
 
     }
     
-    // Serial.println(sensorConvertedValues->ConValTempLM35); 
-    // Serial.println("LM35_GetTemp ended");
+}
 
+/******************************************************************************************************
+ * Function name: LM35_GetRawData
+ * Descr: Function that converts the raw data from the LM35 sensor to temperature
+ *        Read raw data from adc port using analogRead and setting for the ADC data aquisition
+ * Params: sensorRawValues
+ * Return: 
+ *  
+ *******************************************************************************************************/
+void SPMon_LM35_Sensor_Library::LM35_GetRawData(SensorRawValues * sensorRawValues)
+{
+    /* Local variable to store adc raw values*/
+    uint16_t adcData;
+    
+#if LM35_OVERSAMPLING == TRUE
+    /* Read the raw data from the LM35 sensor using
+    the adc port with oversampling rate defined by LM35_MAX_SAMPLES */
+    for (uint8_t i = 0; i < LM35_MAX_SAMPLES; i++)
+    {
+        adcData += analogRead(ADC_PORT_LM_35);
+        delay(100);
+    }
+    /* Calculate the average value */
+    adcData = adcData / LM35_MAX_SAMPLES;
+#else
+    /* Read the raw data from the LM35 sensor */
+    uint16_t adcData = analogRead(ADC_PORT_LM_35);
+#endif
+    /* Store the raw data in the struct */
+    sensorRawValues->RawAdc_TempVal_LM35 = adcData;
 }
 
 /******************************************************************************************************
@@ -99,22 +127,3 @@ void SPMon_LM35_Sensor_Library::LM35_Calib(uint8_t sensorPin, uint8_t adcResolut
     Serial.println("LM35 Calibration ended");
 }
 
-/******************************************************************************************************
- * Function name: LM35_GetRawData
- * Descr: Function that converts the raw data from the LM35 sensor to temperature
- *        Read raw data from adc port using analogRead and setting for the ADC data aquisition
- * Params: sensorRawValues
- * Return: 
- *  
- *******************************************************************************************************/
-void SPMon_LM35_Sensor_Library::LM35_GetRawData(SensorRawValues * sensorRawValues)
-{
-
-    Serial.println("LM35_GetRawData started");
-    /* Read the raw data from the LM35 sensor */
-    uint16_t adcData = analogRead(ADC_PORT_LM_35);
-    sensorRawValues->RawAdc_TempVal_LM35 = adcData;
-    Serial.println(sensorRawValues->RawAdc_TempVal_LM35); 
-    Serial.println("LM35_GetRawData ended");
-     
-}

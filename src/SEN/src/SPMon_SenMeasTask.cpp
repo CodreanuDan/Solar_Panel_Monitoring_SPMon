@@ -186,10 +186,10 @@ void SPMon_SensorMeasurementTask_LM35::SPMon_SenMeasTask_GetRawData(SensorRawVal
   if (rawValues != nullptr)
   {
     /* Get raw data from the LM35 sensor */
-    Serial.print(F("[LM35_GET_RAW_DATA]: "));
+    // Serial.print(F("[LM35_GET_RAW_DATA]: "));
     /* Get raw data from the LM35 sensor */
     lm35.LM35_GetRawData(rawValues);
-    Serial.println(rawValues->RawAdc_TempVal_LM35); // Print raw data
+    // Serial.println(rawValues->RawAdc_TempVal_LM35); // Print raw data
   }
   else
   {
@@ -211,9 +211,9 @@ void SPMon_SensorMeasurementTask_LM35::SPMon_SenMeasTask_ConvertData(SensorRawVa
   if (rawValues != nullptr && convertedValues != nullptr)
   {
     /* Convert raw data from the LM35 sensor */
-    Serial.print(F("[LM35_CONVERT_DATA]: "));
+    // Serial.print(F("[LM35_CONVERT_DATA]: "));
     lm35.LM35_GetTemp(rawValues, convertedValues);
-    Serial.println(convertedValues->ConValTempLM35); // Print converted data
+    // Serial.println(convertedValues->ConValTempLM35); // Print converted data
   }
   else
   {
@@ -255,10 +255,10 @@ void SPMon_SensorMeasurementTask_MAXTCHPL::SPMon_SenMeasTask_GetRawData(SensorRa
   if (rawValues != nullptr)
   {
     /* Get raw data from the THCPLE sensor */
-    Serial.print(F("[THCPLE_GET_RAW_DATA]: "));
+    // Serial.print(F("[THCPLE_GET_RAW_DATA]: "));
     /* Get raw data from the THCPLE sensor */
     thermocouple.MAX6675_GetRawData(rawValues);
-    Serial.println(rawValues->thCplRawData); // Print raw data
+    // Serial.println(rawValues->thCplRawData); 
   }
   else
   {
@@ -280,9 +280,9 @@ void SPMon_SensorMeasurementTask_MAXTCHPL::SPMon_SenMeasTask_ConvertData(SensorR
   if (rawValues != nullptr && convertedValues != nullptr)
   {
     /* Convert raw data from the THCPLE sensor */
-    Serial.print(F("[THCPLE_CONVERT_DATA]: "));
+    // Serial.print(F("[THCPLE_CONVERT_DATA]: "));
     thermocouple.MAX6675_GetTemp(rawValues, convertedValues);
-    Serial.println(convertedValues->thCplConvData); // Print converted data
+    // Serial.println(convertedValues->thCplConvData); 
   }
   else
   {

@@ -34,6 +34,7 @@ class SPMon_MAX6675_THCPL_Sensor_Library
 public:
     SPMon_MAX6675_THCPL_Sensor_Library(uint8_t SCLK, uint8_t CS, uint8_t MISO);
     void MAX6675_GetRawData(SensorRawValues *sensorRawValues);
+    byte MAX6675_GetRawDataSequence();
     void MAX6675_GetTemp(SensorRawValues *sensorRawValues, SensorConvertedValues *sensorConvertedValues);
 
 private:

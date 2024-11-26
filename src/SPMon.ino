@@ -51,13 +51,36 @@ void setup()
 ******************************************************************************************************/
 void loop() 
 {
-  /* Print sensor values and task state */
-  Serial.print(F("Loop - Task State: "));
-  Serial.print(TaskState.SenMeasTaskState);
-  Serial.print(F("; [LOOP]Raw Temperature Value: "));
-  Serial.print(RawValues.RawAdc_TempVal_LM35);
-  Serial.print(F("; [LOOP]Converted Temperature Value: "));
-  Serial.println(ConvertedValues.ConValTempLM35);
+#if DBG == TRUE
+  SPMon_Debbuger();
+#endif
 
   delay(1000); // Delay to avoid flooding the serial output
+}
+
+/******************************************************************************************************
+ * Function name: SPMon_Debbuger
+ * Descr: Function that prints the task state and the sensor values
+ * Params:
+ * Return:
+ *  
+ * *******************************************************************************************************/
+void SPMon_Debbuger()
+{
+  /* Print sensor values and task state */
+  Serial.print(F("[LOOP] - Task State: "));
+  Serial.print(TaskState.SenMeasTaskState);
+  Serial.println();
+  Serial.print(F("; [LM35]Raw Temperature Value: "));
+  Serial.print(RawValues.RawAdc_TempVal_LM35);
+  Serial.print(F("; Converted Temperature Value: "));
+  Serial.print(ConvertedValues.ConValTempLM35);
+  Serial.println();
+  Serial.print(F("; [THCPL]Raw SPI Frame: "));
+  Serial.print(RawValues.thCplRawData, BIN);
+  Serial.print(F("; [THCPL]Raw SPI Frame(int): "));
+  Serial.print(RawValues.thCplRawData);
+  Serial.print(F("; Converted SPI Frame: "));
+  Serial.print(ConvertedValues.thCplConvData);
+  Serial.println();
 }

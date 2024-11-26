@@ -33,8 +33,8 @@
 #define POWER_SUPPLY_VOLTAGE_5V 5000.00
 #define POWER_SUPPLY_VOLTAGE_3V3 3300.00
 
-#define MAX_VAL_TEMP 100u
-#define MIN_VAL_TEMP 0u
+#define MAX_VAL_TEMP 175u
+#define MIN_VAL_TEMP -75
 
 #define MAX_VAL_HUM 100u
 #define MIN_VAL_HUM 0u
@@ -50,9 +50,17 @@
 #define FALSE 0u
 
 /*******************************************************/
+/* DEBUG OPTIONS 
+   Debugging TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define DBG TRUE
+
+/*******************************************************/
 /* LM35 Sensor related defines */
 #define ADC_PORT_LM_35 4
-#define LM35_CALIBRATION_OFFSET 9.5f
+#define LM35_CALIBRATION_OFFSET 4.25f
+/* LM 35 Oversampling enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define LM35_OVERSAMPLING TRUE
+/* LM35 sensor oversampling rate */
 #define LM35_MAX_SAMPLES 10u 
 #define LM35_CALIBRATION_PERIOD 1000u
 #define LM35_CALIBRATION_SAMPLES 10u
@@ -64,8 +72,16 @@
 #define SPI_PIN_SCLK   18
 #define SPI_PIN_CS     5
 #define SPI_PIN_MISO   19
-#define THERMOCOUPLE_CONVERSION_FACTOR 0.25f
+/* SPI delay between bit read*/
 #define SPI_DELAY_US 50u
+
+/*******************************************************/
+/* Thermocouple OverSampling enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define THCPL_OVERSAMPLING TRUE
+/* Thermocouple related defines */
+#define THERMOCOUPLE_OVERSAMPLING_RATE 10u
+/* Conversion factor to temperature for thermocouple*/
+#define THERMOCOUPLE_CONVERSION_FACTOR 0.25f
 /*******************************************************/
 #define FAULT_SENS_COUNTER 3u
 

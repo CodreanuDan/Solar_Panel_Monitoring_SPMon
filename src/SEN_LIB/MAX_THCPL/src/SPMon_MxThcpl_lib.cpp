@@ -42,19 +42,19 @@ SPMon_MAX6675_THCPL_Sensor_Library::SPMon_MAX6675_THCPL_Sensor_Library(uint8_t S
     digitalWrite(cs, HIGH);
 }
 
+
 /******************************************************************************************************
- * Function name: MAX6675_GetRawData
+ * Function name: MAX6675_GetRawDataSequence
  * Descr: Function that reads the raw data from the MAX6675 sensor (SPI Raw constructed frame)
  *        It computes the raw data by reading the data frame from the sensor and storing it in the struct RawValues
  *        The data is consisiting of 16 bits, made up from 2 bytes (MSB and LSB) wich are 2 SPI raw frames
  *        Shift the MSB 8 bits to the left and add the LSB to get the full 16 bit data
- * Params: sensorRawValues
- * Return:
+ * Params:
+ * Return: byte
  *
  *******************************************************************************************************/
-void SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetRawData(SensorRawValues *sensorRawValues)
+byte SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetRawDataSequence()
 {
-
     /* Variable to store the raw data */
     uint16_t SPIrawValue;
 
@@ -64,14 +64,12 @@ void SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetRawData(SensorRawValues *sen
 
     /* Read the first SPI frame */
     SPIrawValue = SPI_ReadRawFrame();
-    //   Serial.print("First SPI Frame: "); Serial.println(SPIrawValue, BIN);
 
     /* Shift the MSB 8 bits to the left and add the LSB to get the full 16 bit data */
     SPIrawValue <<= 8;
 
     /* Read the second SPI frame and add it to the first frame using the OR operator */
     SPIrawValue |= SPI_ReadRawFrame();
-    //   Serial.print("Second SPI Frame: "); Serial.println(SPIrawValue, BIN);
 
     /* Stop SPI communication by setting the cs pin to HIGH */
     digitalWrite(cs, HIGH);
@@ -82,38 +80,64 @@ void SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetRawData(SensorRawValues *sen
         Serial.println("Error: Thermocouple not attached!");
     }
 
+    /* Remove the 3 bits that are not needed */
+    SPIrawValue >>= 3;
+
+    return SPIrawValue;
+}
+
+/******************************************************************************************************
+ * Function name: MAX6675_GetRawData
+ * Descr: Function that reads the raw data from the MAX6675 sensor (SPI Raw constructed frame)
+ *        Single read or with oversampling rate defined by THERMOCOUPLE_OVERSAMPLING_RATE
+ * Params: sensorRawValues
+ * Return:
+ *
+ *******************************************************************************************************/
+void SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetRawData(SensorRawValues *sensorRawValues)
+{
+    /* Variable to store the raw data */
+    uint16_t SPIrawData;
+    
+#if THCPL_OVERSAMPLING == TRUE
+    SPIrawData = 0;
+    /* Read the raw data with oversampling */
+    for (uint8_t i = 0; i < THERMOCOUPLE_OVERSAMPLING_RATE; i++)
+    {
+        SPIrawData += MAX6675_GetRawDataSequence();
+        delay(100);
+    }
+    /* Get the average of the raw data */
+    SPIrawData /= THERMOCOUPLE_OVERSAMPLING_RATE;
+#else
+    /* Read the raw data without oversampling */
+    SPIrawData = MAX6675_GetRawDataSequence();
+#endif
+
     /* Store the raw data in the struct */
-    sensorRawValues->thCplRawData = SPIrawValue;
+    sensorRawValues->thCplRawData = SPIrawData;
 }
 
 /******************************************************************************************************
  * Function name: MAX6675_GetTemp
- * Descr: Function that converts the raw data from the MAX6675 sensor to temperature
- *        Read the raw data from the struct RawValues and convert it to temperature
- *        Shift 3 bits to the right to get the temperature in Celsius to get rid of State, DevID, ThCPlinput bits (0,1,2)
- *        Multiply the raw data with the conversion factor (0.25) to get the temperature in Celsius
- *        bit 15 is is the sign bit, 0 (dummy) the range is 0-1024 Celsius
+ * Descr:  Function that converts the raw data from the MAX6675 sensor to temperature
+ *         Read the raw data from the struct RawValues and convert it to temperature
+ *         Shift 3 bits to the right to get the temperature in Celsius to get rid of State, DevID, ThCPlinput bits (0,1,2)
+ *         Multiply the raw data with the conversion factor (0.25) to get the temperature in Celsius
+ *         bit 15 is is the sign bit, 0 (dummy) the range is 0-1024 Celsius
  * Params: sensorRawValues, sensorConvertedValues
  * Return:
  *
  *******************************************************************************************************/
 void SPMon_MAX6675_THCPL_Sensor_Library::MAX6675_GetTemp(SensorRawValues *sensorRawValues, SensorConvertedValues *sensorConvertedValues)
 {
-   /*Local variables to store the raw data and the temperature value */
-   uint16_t SPI_RawVal = sensorRawValues->thCplRawData;
-   float_t  TempVal = 0;
-   
-    /* Check if the thermocouple is attached */
-   if(SPI_RawVal)
-   {
-        if(SPI_RawVal & 0x4)
-        {
-            /* Remove the 3 bits that are not needed */
-            SPI_RawVal >>= 3;
-            /* Convert the raw data to temperature */
-            TempVal = SPI_RawVal * THERMOCOUPLE_CONVERSION_FACTOR;
-        }
-   }
+    /*Local variables to store the raw data and the temperature value */
+    uint16_t SPI_RawVal = sensorRawValues->thCplRawData;
+    float_t  TempVal = 0;
+    /* Convert the raw data to temperature */
+    TempVal = SPI_RawVal * THERMOCOUPLE_CONVERSION_FACTOR;
+    /* Store the temperature in the struct */
+    sensorConvertedValues->thCplConvData = TempVal;
 
 }
 
@@ -149,6 +173,7 @@ byte SPMon_MAX6675_THCPL_Sensor_Library::SPI_ReadRawFrame()
         }
         else
         {
+
         }
 
         /* Send LOW pulse 10/50 ms to stop communication with MAX6675 */
