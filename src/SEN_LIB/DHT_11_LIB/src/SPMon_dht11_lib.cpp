@@ -1,131 +1,156 @@
-// #include "dht11.h"
+/******************************************************************************************************
+* Project name: Solar Panel Monitoring
+* Author: Codreanu Dan
+* File name: SPMon_dht11_lib.cpp
+* Descr: Contains the implementation of the DHT11 sensor
+*        -> Docs: https://www.alldatasheet.com/datasheet-pdf/view/1440068/ETC/DHT11.html
+*
+*
+*
+*
+*
+* Version: 1.0, 26.11.2024
+******************************************************************************************************/
 
-// SPMon_DHT_11_Sensor_Library::SPMon_DHT_11_Sensor_Library(int dht_11_pin) : _dht_11_pin(dht_11_pin)
-// {
-//     pinMode(_dht_11_pin, OUTPUT);
-//     /* Wake up the sensor */
-//     digitalWrite(_dht_11_pin, HIGH);
-// }
+/******************************************************************************************************
+ * IMPORT AREA
+ * ******************************************************************************************************/
+#include "SPMon_DataTypes.h"
+#include "SPMon_dht11_lib.h"
 
-// void SPMon_DHT_11_Sensor_Library::DHT_11_StartSignal()
-// {
-//     pinMode(_dht_11_pin, OUTPUT);
-//     /* Send signal to the sensor */
-//     digitalWrite(_dht_11_pin, LOW);
-//     vTaskDelay(DHT_11_ALERT_SIG_DURATION / pdMsTicks);
-//     /* Pull up signal and wait for the senor to respond */
-//     digitalWrite(_dht_11_pin, HIGH);
-//     delayMicroseconds(DHT_11_REQUEST_SIG_DURATION);
-//     /* Change to input to recive sensor data */
-//     pinMode(_dht_11_pin, INPUT);
-// }
+/******************************************************************************************************
+ * Function name: SPMon_DHT11_Sensor_Library
+ * Descr: Constructor for the SPMon_DHT11_Sensor_Library class
+ *        Initialize the DHT11 sensor pin
+ * Params: dht11Pin
+ * Return:
+ *
+ *******************************************************************************************************/
+SPMon_DHT11_Sensor_Library::SPMon_DHT11_Sensor_Library(uint8_t dht11Pin) : _pin(dht11Pin)
+{
+    /* Initialize the pin */
+    pinMode(_pin, OUTPUT);
+    digitalWrite(_pin, HIGH);
+}
 
-// int SPMon_DHT_11_Sensor_Library::DHT_11_ReadRawData(byte data[5])
-// {
-//     /* Send start signal */
-//     DHT_11_StartSignal();
-//     /* set timout srart counter*/
-//     unsigned long timeout_start = millis();
+/******************************************************************************************************
+ * Function name: DHT11_GetRawData
+ * Descr: Function that reads the raw data from the DHT11 sensor
+ * Params: sensorRawValues
+ * Return:
+ *
+ *******************************************************************************************************/
+void SPMon_DHT11_Sensor_Library::DHT11_GetRawData(SensorRawValues *sensorRawValues)
+{
+    /* Delay for 500ms */
+    delay(500);
+    /* Start the communication sequence */
+    DHT11_StartSequence();
+    /* Variable to store the data */
+    byte data[5];
+    
+    /* Check if the sensor has pulled the data line low */
+    if (digitalRead(_pin) == LOW)
+    {
+        /* Wait for the sensor to pull the data line high */
+        delayMicroseconds(80);
+        /* Check if the sensor has pulled the data line high */
+        if (digitalRead(_pin) == HIGH)
+        {
+            /* Wait for the sensor to pull the data line low */
+            delayMicroseconds(80);
+            /* Read the data */
+            for (uint8_t i = 0; i < 5; i++)
+            {
+                data[i] = DHT11_ReadDataByte();
+            }
+            
+            /* Check the checksum */
+            if (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF))
+            {
+                /* Store the raw data */
+                sensorRawValues->dhtRawData[0] = data[0];
+                sensorRawValues->dhtRawData[1] = data[1];
+                sensorRawValues->dhtRawData[2] = data[2];
+                sensorRawValues->dhtRawData[3] = data[3];
+                sensorRawValues->dhtRawData[4] = data[4];
+            }
+            else
+            {
 
-//     /* Check timeout error */
-//     while (digitalRead(_dht_11_pin) == HIGH)
-//     {
-//         if (millis() - timeout_start > DHT_11_TIMEOUT_DURATION)
-//         {
-//             return DHT_11_ERROR_TIMEOUT;
-//         }
-//     }
+            }
+        }
+    }
 
-//     /* DHT 11 response routine */
-//     if (digitalRead(_dht_11_pin) == LOW)
-//     {
-//         /* Wait for the sensor to respond ; dht pull down voltage 80 us*/
-//         delayMicroseconds(DHT_11_RESPONSE_SIG_DURATION);
-//         if (digitalRead(_dht_11_pin) == LOW)
-//         {
-//             /* Wait for the sensor to respond ; dht pulls up voltage 80 us*/
-//             delayMicroseconds(DHT_11_RESPONSE_SIG_DURATION);
-//             /* Read data bytes from the sensor (40 bit message)*/
-//             for (int i = 0; i <= 5; i++)
-//             {
-//                 /* Append the data to the data array*/
-//                 data[i] = DHT_11_ReadByte();
-//                 if (data[i] == DHT_11_ERROR_TIMEOUT)
-//                 {
-//                     return DHT_11_ERROR_TIMEOUT;
-//                 }
-//             }
+}
 
-//             /* Check the CRC*/
-//             if(data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF))
-//             {
-//                 return 0;
-//             }
-//             else
-//             {
-//                 return DHT_11_ERROR_CRC;
-//             }
-//         }
-//         else
-//         {
-//             return DHT_11_ERROR_TIMEOUT;
-//         }
-//     }
-// }
+/******************************************************************************************************
+ * Function name: DHT11_GetConvData
+ * Descr: Function that converts the raw data from the DHT11 sensor to temperature and humidity
+ * Params: sensorRawValues, sensorConvertedValues
+ * Return:
+ *
+ *******************************************************************************************************/
+void SPMon_DHT11_Sensor_Library::DHT11_GetConvData(SensorRawValues *sensorRawValues, SensorConvertedValues *sensorConvertedValues)
+{
 
-// byte SPMon_DHT_11_Sensor_Library::DHT_11_ReadByte()
-// {
-//     byte value = 0;
-//     for(int i = 0; i < 8; i++)
-//     {
-//         while(digitalRead(_dht_11_pin) == LOW);
-//         delayMircoseconds(30);
-//         /* Build the data byte */
-//         if(digitalRead(_dht_11_pin) == HIGH)
-//         {
-//             /* Shift to the left, first bit is MSB */
-//             value |= (1 << (7 - i));
-//         }
-//          while(digitalRead(_dht_11_pin) == HIGH);
-//     }
+}
 
-//     return value;
-// }
+/******************************************************************************************************
+ * Function name: DHT11_ReadDataByte
+ * Descr: Function that reads the data byte from the DHT11 sensor
+ *        -> Data byte is read bit by bit at a interval of 30us
+ *        -> If the data line is high for 30us, the bit is set to 1
+ *        -> Docs: https://www.alldatasheet.com/datasheet-pdf/view/1440068/ETC/DHT11.html
+ * Params:
+ * Return: byte
+ *
+ *******************************************************************************************************/
+byte SPMon_DHT11_Sensor_Library::DHT11_ReadDataByte()
+{
+    /* Variable to store the data */
+    byte data = 0;
+    /* Read the data bit by bit for each data byte */
+    for (int i = 0; i < 8; i++)
+    {
+        /* Wait for the sensor to pull the data line low and wait
+          for 30us to detect the bit transmission from the sensor */
+        while (digitalRead(_pin) == LOW);
+        delayMicroseconds(30);
+        /* Check if the data line is high to signal a LOGIC 1 and a bit transmission */
+        if (digitalRead(_pin) == HIGH)
+        {
+            /* Use the OR operator to shift the bits in the data variable for each position 
+               whem the data line is high (LOGIC 1) */
+            data |= (1 << (7 - i));
+            while (digitalRead(_pin) == HIGH);
+        }
+    }
+    return data;
+}
 
-// int SPMon_DHT_11_Sensor_Library::DHT_11_ReadTemeperature(int &temperature)
-// {
-//     byte data[5];
-//     int error = DHT_11_ReadRawData(data);
-//     if(error != 0)
-//     {
-//         return error;
-//     }
-//     temperature =  data[2];
-// }
-
-// int SPMon_DHT_11_Sensor_Library::DHT_11_ReadHumidity(int &humidity)
-// {
-//     byte data[5];
-//     int error = DHT_11_ReadRawData(data);
-//     if(error != 0)
-//     {
-//         return error;
-//     }
-//     humidity =  data[2];
-// }
-
-// int SPMon_DHT_11_Sensor_Library::DHT_11_ReadAndCheckData()
-// {
-//     int dhtStatusTemp = DHT_11_ReadTemeperature(int &temperature)
-//     int dhtStatusHum = DHT_11_ReadHumidity(int &humidity)
-//     if( dhtStatusTemp != 0 && dhtStatusHum != 0)
-//     {
-//        temp_struct_pointer_placeholder = temperature;
-//        hum_struct_pointer_placeholder = humidity;
-//     }
-//     else
-//     {
-//        temp_struct_pointer_placeholder = temperature;
-//        temp_struct_pointer_placeholder  = humidity;
-//     }
-// }
+/******************************************************************************************************
+ * Function name: DHT11_StartSequence
+ * Descr: Function that starts the communication sequence with the DHT11 sensor 
+ *        -> Docs: https://www.alldatasheet.com/datasheet-pdf/view/1440068/ETC/DHT11.html
+ *        -> The communication sequence is started by the MCU by pulling the data line low for 18ms
+ *        -> Then the MCU pulls the data line high for 40us
+ *        -> The MCU sets the data line as input and waits for the sensor to pull the data line low for 80us
+ * Params:
+ * Return:
+ *
+ *******************************************************************************************************/
+void SPMon_DHT11_Sensor_Library::DHT11_StartSequence()
+{
+    /* Set the data line as output and send start sequence */
+    pinMode(_pin, OUTPUT);
+    /* Pull the data line low for 18ms */
+    digitalWrite(_pin, LOW);
+    delay(18);
+    /* Pull the data line high for 40us */
+    digitalWrite(_pin, HIGH);
+    delayMicroseconds(40);
+    /* Set the data line as input and wait for the sensor to 
+    begin the communication */
+    pinMode(_pin, INPUT);
+}

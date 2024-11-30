@@ -45,44 +45,80 @@
 #define CONV_FACTOR 4095u
 #define CONV_DIVISOR 10u
 
+/*-----------------------------------------------*/
+/* Code control defines */
 #define STACK_SIZE_BYTES 2048u
 #define TRUE 1u
 #define FALSE 0u
+/*-----------------------------------------------*/
 
-/*******************************************************/
+/*------------------------------------------------*/
 /* DEBUG OPTIONS 
    Debugging TRUE(1)-Enebled; FALSE(0)-Disabled */
 #define DBG TRUE
+/*------------------------------------------------*/
 
-/*******************************************************/
+
+/*------------------------------------------------*/
 /* LM35 Sensor related defines */
+
+/* LM35 Sensor enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define LM35_SENSOR_ENABLE TRUE
+/* Port for LM35 sensor */
 #define ADC_PORT_LM_35 4
+/* LM35 sensor calibration offset */
 #define LM35_CALIBRATION_OFFSET 4.25f
 /* LM 35 Oversampling enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
 #define LM35_OVERSAMPLING TRUE
 /* LM35 sensor oversampling rate */
 #define LM35_MAX_SAMPLES 10u 
+/* LM35 sensor calibration period */
 #define LM35_CALIBRATION_PERIOD 1000u
+/* LM35 sensor calibration samples */
 #define LM35_CALIBRATION_SAMPLES 10u
+/* LM35 sensor error threshold */
 #define LM35_ERROR_THRESHOLD 5.5f
-/*******************************************************/
+/*------------------------------------------------*/
 
-/*******************************************************/
+/*------------------------------------------------*/
 /* SPI related defines */
+
+/* SPI pin: Serial Clock */
 #define SPI_PIN_SCLK   18
+/* SPI pin: Chip Select */
 #define SPI_PIN_CS     5
+/* SPI pin: Master In Slave Out */
 #define SPI_PIN_MISO   19
 /* SPI delay between bit read*/
 #define SPI_DELAY_US 50u
+/*------------------------------------------------*/
 
-/*******************************************************/
+/*------------------------------------------------*/
+/* MAXTCHPL Sensor related defines */
+
+/* MAXTCHPL Sensor enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define THCPL_SENSOR_ENABLE TRUE
 /* Thermocouple OverSampling enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
 #define THCPL_OVERSAMPLING TRUE
 /* Thermocouple related defines */
 #define THERMOCOUPLE_OVERSAMPLING_RATE 10u
 /* Conversion factor to temperature for thermocouple*/
 #define THERMOCOUPLE_CONVERSION_FACTOR 0.25f
-/*******************************************************/
+/*------------------------------------------------*/
+
+/*------------------------------------------------*/
+/* DHT11 Sensor related defines */
+
+/* DHT11 Sensor enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
+#define DHT11_SENSOR_ENABLE TRUE
+/* DHT11 Sensor pin */
+#define DHT11_PIN 13
+/* DHT11 Sensor calibration period */
+#define DHT11_CALIBRATION_PERIOD 500u
+/*------------------------------------------------*/
+
+
+
 #define FAULT_SENS_COUNTER 3u
 
 #define SEN_MEAS_TASK_PERIOD 1000u
@@ -136,6 +172,8 @@ extern InitFlags initFlag;
 typedef struct{
  uint16_t RawAdc_TempVal_LM35;
  byte thCplRawData;
+ /* DHT11 sensor raw data: 5 bytes */
+ byte dhtRawData[5];
  uint16_t RawAdc_HumVal;
  uint16_t RawAdc_LuxVal;
 }SensorRawValues;
@@ -145,8 +183,10 @@ extern SensorRawValues RawValues;
 typedef struct{
   float_t ConValTempLM35;
   float_t thCplConvData;
-  float ConValHum;
-  float ConValLux;
+  /* DHT11 sensor values element: 0 - Humidity; 1 - Temperature */
+  float_t ConValDHT[2];
+  float_t ConValHum;
+  float_t ConValLux;
 }SensorConvertedValues;
 extern SensorConvertedValues ConvertedValues; 
 

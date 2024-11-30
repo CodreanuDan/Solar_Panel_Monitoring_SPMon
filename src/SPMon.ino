@@ -71,11 +71,16 @@ void SPMon_Debbuger()
   Serial.print(F("[LOOP] - Task State: "));
   Serial.print(TaskState.SenMeasTaskState);
   Serial.println();
+/* LM35 sensor Debug enable: TRUE/FALSE */
+#if LM35_SENSOR_ENABLE == TRUE
   Serial.print(F("; [LM35]Raw Temperature Value: "));
   Serial.print(RawValues.RawAdc_TempVal_LM35);
   Serial.print(F("; Converted Temperature Value: "));
   Serial.print(ConvertedValues.ConValTempLM35);
   Serial.println();
+#endif
+/* THCPL sensor Debug enable: TRUE/FALSE */
+#if THCPL_SENSOR_ENABLE == TRUE
   Serial.print(F("; [THCPL]Raw SPI Frame: "));
   Serial.print(RawValues.thCplRawData, BIN);
   Serial.print(F("; [THCPL]Raw SPI Frame(int): "));
@@ -83,4 +88,15 @@ void SPMon_Debbuger()
   Serial.print(F("; Converted SPI Frame: "));
   Serial.print(ConvertedValues.thCplConvData);
   Serial.println();
+#endif
+/* DHT11 sensor Debug enable: TRUE/FALSE */
+#if DHT11_SENSOR_ENABLE == TRUE
+  Serial.print(F("; [DHT11]Raw Data: "));
+  for (int i = 0; i < 5; i++)
+  {
+    Serial.print(RawValues.dhtRawData[i]);
+    Serial.print(F(" "));
+  }
+  Serial.println();
+#endif
 }
