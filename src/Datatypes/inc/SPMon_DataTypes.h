@@ -63,7 +63,7 @@
 /* LM35 Sensor related defines */
 
 /* LM35 Sensor enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
-#define LM35_SENSOR_ENABLE TRUE
+#define LM35_SENSOR_ENABLE FALSE
 /* Port for LM35 sensor */
 #define ADC_PORT_LM_35 4
 /* LM35 sensor calibration offset */
@@ -97,7 +97,7 @@
 /* MAXTCHPL Sensor related defines */
 
 /* MAXTCHPL Sensor enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
-#define THCPL_SENSOR_ENABLE TRUE
+#define THCPL_SENSOR_ENABLE FALSE
 /* Thermocouple OverSampling enable flag TRUE(1)-Enebled; FALSE(0)-Disabled */
 #define THCPL_OVERSAMPLING TRUE
 /* Thermocouple related defines */

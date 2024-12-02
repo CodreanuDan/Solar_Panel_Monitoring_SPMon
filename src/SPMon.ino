@@ -61,6 +61,9 @@ void loop()
 /******************************************************************************************************
  * Function name: SPMon_Debbuger
  * Descr: Function that prints the task state and the sensor values
+ *       - used for debugging
+ *       - can be enabled/disabled from the SPMon_DataTypes.h file
+ *       - code elements can be enabled/disabled from the SPMon_DataTypes.h file
  * Params:
  * Return:
  *  
@@ -78,6 +81,8 @@ void SPMon_Debbuger()
   Serial.print(F("; Converted Temperature Value: "));
   Serial.print(ConvertedValues.ConValTempLM35);
   Serial.println();
+#else
+  Serial.println(F("; [LM35]Sensor not enabled"));
 #endif
 /* THCPL sensor Debug enable: TRUE/FALSE */
 #if THCPL_SENSOR_ENABLE == TRUE
@@ -88,6 +93,8 @@ void SPMon_Debbuger()
   Serial.print(F("; Converted SPI Frame: "));
   Serial.print(ConvertedValues.thCplConvData);
   Serial.println();
+#else
+  Serial.println(F("; [THCPL]Sensor not enabled"));
 #endif
 /* DHT11 sensor Debug enable: TRUE/FALSE */
 #if DHT11_SENSOR_ENABLE == TRUE
@@ -97,6 +104,15 @@ void SPMon_Debbuger()
     Serial.print(RawValues.dhtRawData[i]);
     Serial.print(F(" "));
   }
+  Serial.print(F("; [DHT11]Converted Data: "));
+  Serial.print("Humidity: ");
+  Serial.print(ConvertedValues.ConValDHT[0]);
+  Serial.print(F(" "));
+  Serial.print("Temperature: ");
+  Serial.print(ConvertedValues.ConValDHT[1]);
   Serial.println();
+#else
+  Serial.println(F("; [DHT11]Sensor not enabled"));
 #endif
+
 }

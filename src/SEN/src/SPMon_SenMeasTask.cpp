@@ -77,13 +77,15 @@ void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStat
   sensorMeasurementInterface.push_back(new SPMon_SensorMeasurementTask_DHT11());
 #endif
 
+  /* Execute the state machine */
   switch (taskState->SenMeasTaskState)
   {
-  /* Execute the state machine */
+  /* Turn on the sensors if no errors are detected */
   case SENS_MEAS_STATE_OFF:
     Serial.println(F("[STATE] SENS_MEAS_STATE_OFF"));
     taskState->SenMeasTaskState = SENS_MEAS_STATE_MEAS; 
     break;
+  /* Get raw data from the sensors */
   case SENS_MEAS_STATE_MEAS:
     Serial.println(F("[STATE] SENS_MEAS_STATE_MEAS"));
     /* Get raw data from the sensors */
@@ -103,6 +105,7 @@ void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStat
     }
     taskState->SenMeasTaskState = SENS_MEAS_STATE_CONV; 
     break;
+  /* Convert raw data from the sensors */
   case SENS_MEAS_STATE_CONV:
     Serial.println(F("[STATE] SENS_MEAS_STATE_CONV"));
     /* Convert raw data from the sensors */
@@ -122,6 +125,7 @@ void SPMon_SensorMeasurementTask::SPMon_SenMeasTask_ExecuteStateMachine(TaskStat
     }
     taskState->SenMeasTaskState = SENS_MEAS_STATE_MEAS; 
     break;
+  /* Error state error dissapears -> SENS_MEAS_STATE_OFF else SENS_MEAS_STATE_OFF (to be implemented) */
   case SENS_MEAS_STATE_ERROR:
     Serial.println(F("[STATE] SENS_MEAS_STATE_ERROR"));
     break;
@@ -366,6 +370,7 @@ void SPMon_SensorMeasurementTask_DHT11::SPMon_SenMeasTask_ConvertData(SensorRawV
   {
     Serial.println(F("[ERROR] Null pointer passed to SPMon_SenMeasTask_ConvertData[DHT11]"));
   }
+  
 }
 
 /******************************************************************************************************

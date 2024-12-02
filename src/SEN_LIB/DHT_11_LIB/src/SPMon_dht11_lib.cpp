@@ -36,6 +36,11 @@ SPMon_DHT11_Sensor_Library::SPMon_DHT11_Sensor_Library(uint8_t dht11Pin) : _pin(
 /******************************************************************************************************
  * Function name: DHT11_GetRawData
  * Descr: Function that reads the raw data from the DHT11 sensor
+ *       -> The raw data is stored in the SensorRawValues structure
+ *       -> Docs: https://www.alldatasheet.com/datasheet-pdf/view/1440068/ETC/DHT11.html
+ *       -> Raw data: 5 bytes --> Humidity (dhtRawData[0], dhtRawData[1]),
+ *                                Temperature (dhtRawData[2], dhtRawData[3]),
+ *                                CRC (dhtRawData[4]))
  * Params: sensorRawValues
  * Return:
  *
@@ -87,13 +92,37 @@ void SPMon_DHT11_Sensor_Library::DHT11_GetRawData(SensorRawValues *sensorRawValu
 /******************************************************************************************************
  * Function name: DHT11_GetConvData
  * Descr: Function that converts the raw data from the DHT11 sensor to temperature and humidity
+ *        -> The data is stored in the SensorConvertedValues structure
+ *        -> Docs: https://www.alldatasheet.com/datasheet-pdf/view/1440068/ETC/DHT11.html
+ *        -> Raw data: 5 bytes --> Humidity (dhtRawData[0], dhtRawData[1]),
+ *                                 Temperature (dhtRawData[2], dhtRawData[3]),
+ *                                 CRC (dhtRawData[4]))
+ *        -> Converted data: Humidity (ConValDHT[0]), Temperature (ConValDHT[1])
  * Params: sensorRawValues, sensorConvertedValues
- * Return:
+ * Return: Error code
  *
  *******************************************************************************************************/
 void SPMon_DHT11_Sensor_Library::DHT11_GetConvData(SensorRawValues *sensorRawValues, SensorConvertedValues *sensorConvertedValues)
 {
+    /* Local variable to store the raw data */
+    byte rawData[5];
+    /* Get the raw values taken from DHT 11 sensor*/
+    memcpy(rawData, sensorRawValues->dhtRawData, sizeof(rawData));
 
+    /* Check if the raw data is not null */
+    if(rawData != nullptr)
+    {
+        /* Convert the raw data to temperature and humidity */
+        float humidity = (float)rawData[0] + (float)rawData[1] / 10;        
+        float temperature = (float)rawData[2] + (float)rawData[3] / 10;
+        /* Add the humidity and temperature values to the converted values */
+        sensorConvertedValues->ConValDHT[0] = humidity;
+        sensorConvertedValues->ConValDHT[1] = temperature;
+    }
+    else
+    {
+        Serial.println(F("[ERROR] Null pointer passed to DHT11_GetConvData"));
+    }
 }
 
 /******************************************************************************************************
