@@ -44,6 +44,13 @@ The software is **modular** and structured using **FreeRTOS tasks**:
 ## 📊 Data Analysis & AI Integration  
 Once data acquisition is complete, the project will leverage **AI/ML techniques** to analyze the collected data. The goal is to identify **key environmental factors** affecting the solar panel’s performance and optimize efficiency.  
 
+### 📊 Data saved in Google Spreadseet via ESP Http Client  
+<p align="center">
+    <img src="![Screenshot 2025-04-26 171022](https://github.com/user-attachments/assets/552e48ec-1885-4750-9854-2d2cc664c08a)" 
+         alt="Retreived data" height="400"/>
+</p>
+<p align="center"><em>Figure 2: Software architecture and data flow</em></p>
+
 ## 🚀 Future Enhancements  
 - Implement **predictive analytics** for performance estimation  
 - Add more **environmental sensors** for better accuracy  
