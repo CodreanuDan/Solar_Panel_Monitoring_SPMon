@@ -49,7 +49,7 @@ Once data acquisition is complete, the project will leverage **AI/ML techniques*
     <img src="https://github.com/user-attachments/assets/552e48ec-1885-4750-9854-2d2cc664c08a" 
          alt="Retreived data" height="400"/>
 </p>
-<p align="center"><em>Figure 2: Software architecture and data flow</em></p>
+<p align="center"><em>Figure 3: Data saved in Google Spreadseet via ESP Http Client</em></p>
 
 ## 🚀 Future Enhancements  
 - Implement **predictive analytics** for performance estimation  
