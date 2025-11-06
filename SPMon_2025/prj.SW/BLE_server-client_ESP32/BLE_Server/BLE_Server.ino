@@ -36,6 +36,9 @@ BLEServer *pServer = nullptr;
 BLECharacteristic testCharacteristic("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor testDescriptor(BLEUUID((uint16_t)0x2902));
 
+/* BLE Server creation */
+static void BLE_ServerMgr_createServer();
+
 /* Setup callbacks onConnect and onDisconnect */
 class testServerCallbacks: public BLEServerCallbacks
 {
@@ -56,7 +59,7 @@ class testServerCallbacks: public BLEServerCallbacks
 
 };
 
-void connect()
+void BLE_ServerMgr_createServer()
 {
     /* Create the BLE device */
     BLEDevice::init(BLE_SERVER_NAME);
@@ -87,7 +90,7 @@ void connect()
 void setup()
 {
     Serial.begin(115200);
-    connect();
+    BLE_ServerMgr_createServer();
 }
 
 void loop()
