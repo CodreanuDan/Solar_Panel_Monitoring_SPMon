@@ -48,7 +48,7 @@ void BLE_ServerMgrHdl::ServerCallbacks::onConnect(BLEServer* pServer)
     deviceConnected = true;
     Serial.println(">>> Client connected!");
 }
-vf
+
 void BLE_ServerMgrHdl::ServerCallbacks::onDisconnect(BLEServer* pServer) 
 {
     deviceConnected = false;

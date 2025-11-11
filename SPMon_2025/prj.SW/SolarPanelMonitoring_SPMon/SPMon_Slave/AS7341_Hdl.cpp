@@ -15,10 +15,7 @@ void AS7341_init()
     if (!as7341.begin())
     {
         Serial.println(">>> Could not find AS7341");
-        while (1) 
-        { 
-            delay(10); 
-        }
+        while (1);
     }
     as7341.setATIME(100);
     as7341.setASTEP(999);
