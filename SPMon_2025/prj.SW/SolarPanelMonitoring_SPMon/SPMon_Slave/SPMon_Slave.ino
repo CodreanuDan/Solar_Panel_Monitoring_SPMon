@@ -147,7 +147,7 @@ void Task_C1(void* pvParameters)
 {
     for (;;)
     {   
-        if (millis() - lastTimeC1 > TIMER_INTERVAL)
+        if (millis() - lastTimeC1 > TIMER_INTERVAL * 2)
         {
             BLE_ServerMgrHdl::sendPayload((uint8_t*)&payload, sizeof(payload));
             lastTimeC1 = millis();
@@ -158,18 +158,50 @@ void Task_C1(void* pvParameters)
 }
 
 
-/* Task_C0 helper function prototypes */
+/* Task_C0  */
 void Task_C0_MeasurmentHdl()
 {
-    payload.tempDHT = dht22.readTemperature();
-    payload.humDHT  = dht22.readHumidity();
+    float temp_dht_read = dht22.readTemperature();
+    float hum_dht_read  = dht22.readHumidity();
+    float pressure_read = bmp180.readPressure();
+    float lux_read      = bh1750.readLightLevel();
+
+    if (!isnan(temp_dht_read)) 
+    {
+        payload.tempDHT = temp_dht_read;
+    } 
+    else 
+    {
+    }
+
+    if (!isnan(hum_dht_read)) 
+    {
+        payload.humDHT = hum_dht_read;
+    } 
+    else 
+    {
+    }
+
     DS18B20_MeasWrapper();
-    payload.pressure = bmp180.readPressure();
-    payload.lux = bh1750.readLightLevel();
+
+    if (pressure_read >= 0.0f) 
+    { 
+        payload.pressure = pressure_read;
+    } 
+    else 
+    {
+    }
+
+    if (lux_read >= 0.0f) 
+    {
+        payload.lux = lux_read;
+    } 
+    else 
+    {
+    }
+
     AS7341_MeasWrapper();
-
 }
-
 void Task_C0_PrintDataHdl()
 {
     Serial.println("=== Sensor readings ===");

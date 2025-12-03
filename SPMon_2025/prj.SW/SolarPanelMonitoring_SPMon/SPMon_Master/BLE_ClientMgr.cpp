@@ -1,174 +1,166 @@
 #include "BLE_ClientMgr.h"
-#include <Arduino.h>
+#include <esp_bt.h>
 
-/* Activate notify */
-const uint8_t notificationOn[] = { 0x1, 0x0 };
+BLEClient* BLE_ClientMgr::pCurrentClient = nullptr;
+SensorPayload BLE_ClientMgr::payload;
+BLERemoteCharacteristic* BLE_ClientMgr::testCharacteristic = nullptr;
+BLEAddress* BLE_ClientMgr::pServerAddress = nullptr;
+boolean BLE_ClientMgr::doConnect = false;
+boolean BLE_ClientMgr::connected = false;
+boolean BLE_ClientMgr::newDataReceived = false; 
+
+const BLEUUID BLE_ClientMgr::serverServiceUUID("91bad492-b950-4226-aa2b-4ede9fa42f59");
+const BLEUUID BLE_ClientMgr::testCharacteristicUUID("cba1d466-344c-4be3-ab3f-189f80dd7518");
+
+void printHexDump(const uint8_t* data, size_t length) 
+{
+    Serial.print(">>> BLE Raw Payload (hex): ");
+    for (size_t i = 0; i < length; i++) 
+    {
+        if (data[i] < 0x10) Serial.print("0");
+        Serial.print(data[i], HEX);
+        Serial.print(" ");
+        if ((i + 1) % 16 == 0) Serial.println();
+    }
+    if (length % 16 != 0) Serial.println();
+}
+
+void BLE_ClientMgr::init() 
+{
+    Serial.println(">>> BLE: Initializing controller...");
+    BLEDevice::init("SPMon_Master_BLE"); 
+    initBLEService();
+    Serial.println(">>> BLE: Scan started.");
+}
+
+void BLE_ClientMgr::stopBLE() 
+{
+    Serial.println(">>> BLE: Disconnecting and stopping controller...");
+    BLEScan* pBLEScan = BLEDevice::getScan();
+    if (pBLEScan) pBLEScan->stop();
+    if (pCurrentClient && pCurrentClient->isConnected()) 
+    {
+        pCurrentClient->disconnect();
+    }
+    delete pCurrentClient;
+    pCurrentClient = nullptr;
+    delete pServerAddress;
+    pServerAddress = nullptr;
+    testCharacteristic = nullptr;
+    connected = false;
+    doConnect = false;
+    BLEDevice::deinit(); 
+    delay(100);
+    Serial.println(">>> BLE: Controller stopped (resources freed for WiFi).");
+}
+
+
+void BLE_ClientMgr::communicationManagerMainFunction()
+{
+    if (!connected && doConnect && pServerAddress != nullptr)
+    {
+        Serial.println(">>> BLE: Attempting connection...");
+        connected = connectToServer(*pServerAddress);
+        doConnect = false;
+        Serial.println(connected ? ">>> BLE: Connected!" : ">>> BLE: Connection failed");
+    }
+
+    if (connected) checkCharacterisitc();
+}
+
+void BLE_ClientMgr::initBLEService()
+{
+    BLEScan* pBLEScan = BLEDevice::getScan();
+    pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
+    pBLEScan->setActiveScan(true);
+    pBLEScan->setInterval(160);
+    pBLEScan->setWindow(80);
+    pBLEScan->start(0, false); 
+}
 
 void BLE_ClientMgr::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice)
 {
-    /* Check if the name of the advertiser matches */
-    if (advertisedDevice.getName() == BLE_SERVER_NAME)
+    if (advertisedDevice.getName() == BLE_ClientMgr::BLE_SERVER_NAME)
     {
-        /* Scan can be stopped, we found what we are looking for */
-        advertisedDevice.getScan()->stop();
+        Serial.println(">>> BLE: Found BLE_SERVER_ESP32! Stopping scan...");
+        
+        BLEDevice::getScan()->stop(); 
 
-        /* Address of advertiser is the one we need */
+        Serial.print(">>> BLE: Address: ");
+        Serial.println(advertisedDevice.getAddress().toString().c_str());
+
+        if (pServerAddress) delete pServerAddress;
         pServerAddress = new BLEAddress(advertisedDevice.getAddress());
-        /* Set indicator, stating that we are ready to connect */
         doConnect = true;
-        Serial.println(">>> Device found. Connecting!");
-    }
-}
-
-void BLE_ClientMgr::testNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic,
-                                        uint8_t* pData,
-                                        size_t length,
-                                        bool isNotify)
-{
-    if (length == sizeof(SensorPayload))
-    {
-        memcpy(&payload, pData, sizeof(SensorPayload));
-        Serial.println(">>> PAYLOAD RECEIVED:");
-
-        Serial.printf("CNT: %d | DHT_T: %.2f | DHT_H: %.2f | DS18B20: %.2f | THR: %.2f | PRESSURE: %.2f | LUX: %d\n",
-                      payload.cnt,
-                      payload.tempDHT,
-                      payload.humDHT,
-                      payload.tempDS18B20,
-                      payload.tempTHR,
-                      payload.pressure, 
-                      payload.lux);
-
-        Serial.print("Spectre: ");
-        for (int i = 0; i < 10; i++) 
-        {
-            Serial.print(payload.spec[i]);
-            if (i < 9) Serial.print(","); 
-        }
-        Serial.println();
-        Serial.print(">>> Packet length: "); Serial.println(length);
-    }
-    else
-    {
-        Serial.print(">>> Wrong packet size! Expected ");
-        Serial.print(sizeof(SensorPayload));
-        Serial.print(" bytes, but received ");
-        Serial.print(length);
-        Serial.println(" bytes.");
     }
 }
 
 bool BLE_ClientMgr::connectToServer(BLEAddress pAddress)
 {
-    BLEClient* pClient = BLEDevice::createClient();
-    /* Connect to the remote BLE Server */
-    pClient->connect(pAddress);
-    /* Set maximum packet size */
-    pClient->setMTU(517);
-    Serial.println(">>> Connected to server");
-
-    /*Obtain a reference to the service we are after in the remote BLE server */
-    BLERemoteService* pRemoteService = pClient->getService(serverServiceUUID);
-    if (pRemoteService == nullptr)
+    if (pCurrentClient) 
     {
-        Serial.print(">>> Failed to find our service UUID: ");
-        Serial.println(serverServiceUUID.toString().c_str());
-        return (false);
+        if (pCurrentClient->isConnected()) pCurrentClient->disconnect();
+        delete pCurrentClient;
+        pCurrentClient = nullptr;
     }
 
-    /* Obtain a reference to the characteristics in the service of the remote BLE server */
-    testCharacteristic = pRemoteService->getCharacteristic(testCharacteristicUUID);
-    if (testCharacteristic == nullptr)
-    {
-        Serial.print(">>> Failed to find our characteristic UUID");
+    Serial.print(">>> BLE: Connecting to ");
+    Serial.println(pAddress.toString().c_str());
+
+    pCurrentClient = BLEDevice::createClient();
+    if (!pCurrentClient->connect(pAddress, BLE_ADDR_TYPE_PUBLIC, 15000)) 
+    { 
+        Serial.println(">>> BLE: Connect failed");
+        delete pCurrentClient; pCurrentClient = nullptr;
         return false;
     }
-    Serial.println(">>> Found our characteristics");
-    /* Assign callback functions for the Characteristics */
+    
+    Serial.println(">>> BLE: Requesting 517 byte MTU...");
+    pCurrentClient->setMTU(517); 
+
+    auto* pRemoteService = pCurrentClient->getService(serverServiceUUID);
+    if (!pRemoteService) { Serial.println(">>> BLE: Service not found"); pCurrentClient->disconnect(); delete pCurrentClient; pCurrentClient = nullptr; return false; }
+
+    testCharacteristic = pRemoteService->getCharacteristic(testCharacteristicUUID);
+    if (!testCharacteristic || !testCharacteristic->canNotify()) 
+    {
+        Serial.println(">>> BLE: Char not found / no notify");
+        pCurrentClient->disconnect(); delete pCurrentClient; pCurrentClient = nullptr;
+        return false;
+    }
+
     testCharacteristic->registerForNotify(testNotifyCallback);
+    connected = true;
+    Serial.println(">>> BLE: CONNECTED + NOTIFY ACTIVE! Waiting for payload...");
     return true;
 }
 
-void BLE_ClientMgr::initBLEService()
+=====
+void BLE_ClientMgr::testNotifyCallback(BLERemoteCharacteristic*, uint8_t* pData, size_t length, bool)
 {
-    /* Init BLE device */
-    BLEDevice::init("");
-    BLEDevice::setMTU(517);
-    /*
-      * Retrieve a Scanner and set the callback we want to use to be informed when we
-      * have detected a new device. Specify that we want active scanning and start the
-      * scan to run for 30 seconds.
-      */
-    BLEScan* pBLEScan = BLEDevice::getScan();
-    pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
-    pBLEScan->setActiveScan(true);
-    pBLEScan->start(30);
+    if (length == sizeof(SensorPayload)) 
+    { 
+        
+        Serial.println("\n--- Payload COMPLETE (44B) received ---");
+        printHexDump(pData, length); 
+        memcpy(&payload, pData, sizeof(SensorPayload));
+        Serial.printf(">>> PAYLOAD: CNT=%d | T=%.2f°C | H=%.1f%% | DS18=%.2f°C | THR=%.2f°C | PRESSURE=%.2f | LUX=%d\n",
+                      payload.cnt, payload.tempDHT, payload.humDHT, payload.tempDS18B20, payload.tempTHR, payload.pressure, payload.lux);
+        
+        BLE_ClientMgr::newDataReceived = true; 
+
+    } 
+    else 
+    {
+        Serial.printf(">>> ERORR: Wrong length %d (expected %luB).\n", length, sizeof(SensorPayload));
+    }
 }
 
 void BLE_ClientMgr::checkCharacterisitc()
 {
-    if (connected)
+    if (!testCharacteristic || !pCurrentClient || !pCurrentClient->isConnected()) 
     {
-        BLEClient* pClient = testCharacteristic ?
-            testCharacteristic->getRemoteService()->getClient() : nullptr;
-        if (!pClient || !pClient->isConnected())
-        {
-            Serial.println(">>> Server disconnected, will reconnect...");
-            connected = false;
-
-            /* Delete old charactreisitc and address if connection is lost*/
-            testCharacteristic = nullptr;
-            delete pServerAddress;
-            pServerAddress = nullptr;
-        }
+        Serial.println(">>> BLE: Connection lost during active phase. Stopping BLE controller.");
+        stopBLE(); 
     }
-}
-
-void BLE_ClientMgr::restartScan()
-{
-    if (!connected && !doConnect)
-    {
-        Serial.println(">>> Not connected. Starting scan...");
-        BLEScan* pBLEScan = BLEDevice::getScan();
-        pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
-        pBLEScan->setActiveScan(true);
-        pBLEScan->start(5);  // scan de 5 secunde
-    }
-}
-
-void BLE_ClientMgr::establishCommunication()
-{
-    if (doConnect && pServerAddress != nullptr)
-    {
-        if (connectToServer(*pServerAddress))
-        {
-            Serial.println(">>> We are now connected to the BLE Server.");
-            testCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
-            connected = true;
-        }
-        else
-        {
-            Serial.println(">>> Failed to connect, will retry scanning...");
-            connected = false;
-            delete pServerAddress;
-            pServerAddress = nullptr;
-        }
-        doConnect = false;
-    }
-}
-
-void BLE_ClientMgr::init()
-{
-    Serial.println(">>> Starting Arduino BLE Client application...");
-    initBLEService();
-}
-
-void BLE_ClientMgr::communicationManagerMainFunction()
-{
-    /* 1. Check that the client is connected and charactreisitc is valid */
-    checkCharacterisitc();
-    /* 2. If connection is lost, restart scan */
-    restartScan();
-    /* 3. If the server is found try to connect */
-    establishCommunication();
 }

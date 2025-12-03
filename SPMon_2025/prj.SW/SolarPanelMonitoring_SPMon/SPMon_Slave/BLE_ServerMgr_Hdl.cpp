@@ -53,6 +53,10 @@ void BLE_ServerMgrHdl::ServerCallbacks::onDisconnect(BLEServer* pServer)
 {
     deviceConnected = false;
     Serial.println(">>> Client disconnected!");
+
+    /* Small delay to clear the stack before reconnecting */
+    delay(500);
+    
     BLEDevice::startAdvertising();
     Serial.println(">>> Advertising restarted...");
 }
