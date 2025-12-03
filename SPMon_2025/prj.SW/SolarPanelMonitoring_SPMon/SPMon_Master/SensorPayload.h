@@ -6,15 +6,15 @@
 /* Common payload format between Server and Client */
 typedef struct __attribute__((packed)) 
 {
-    uint16_t cnt;
-    float tempDHT;
-    float humDHT;
-    float tempDS18B20;
-    float tempTHR;
-    float pressure;
-    uint16_t lux;
-    uint16_t spec[10];
-} SensorPayload;
+    uint16_t cnt;         // 2 bytes
+    float tempDHT;        // 4 bytes
+    float humDHT;         // 4 bytes
+    float tempDS18B20;    // 4 bytes
+    float tempTHR;        // 4 bytes
+    float pressure;       // 4 bytes
+    uint16_t lux;         // 2 bytes
+    uint16_t spec[10];    // 10 * 2 = 20 bytes
+} SensorPayload;          // Total: 2+4+4+4+4+4+2+20 = 44 bytes
 
 /* Sensor payload expected size */
 #define SENSOR_PAYLOAD_SIZE sizeof(SensorPayload)

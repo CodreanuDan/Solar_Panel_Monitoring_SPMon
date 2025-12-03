@@ -1,61 +1,357 @@
-/* 
- * SPMon_Master.ino
- * Measures Iload and Uload and merges with data recevied from ESP32 Slave,
- * sends unified data to Cloud resource.
- */
-
-/* Includes */
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
-
 #include <Wire.h>
-#include <INA3221.h>
-
-#include "BLEDevice.h"
-#include "BLE_ClientMgr.h" 
-#include "SensorPayload.h"
+#include <ArduinoJson.h> // Necesara pentru JSON
+#include "BLE_ClientMgr.h"
 #include "INA3221_Hdl.h"
+#include "SensorPayload.h"
+#include "FinalPayload.h"
 
-/* I2C Sensor Init check */
+/* --- Configuration Constants --- */
+// #define WIFI_SSID       "SMM"
+// #define WIFI_PASSWORD   "masurari1"
+#define WIFI_SSID       "TP-Link_47D4"
+#define WIFI_PASSWORD   "29393145"
+#define SCRIPT_URL      "https://script.google.com/macros/s/AKfycbwzeNJzdtdMVYKYHxe09Y0Hr9_8betnzkY9nK4Sjz2Sn1O5qQOfaJmLY_VGgSBW_1hZoQ/exec"
+
+/* NTP CONFIG (Romania) */ 
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 7200;       // GMT+2
+const int   daylightOffset_sec = 3600;  // DST
+
+/* Global variables */
+FinalPayload finalPayload;
+
+unsigned long lastCycleTime = 0;
+const unsigned long CYCLE_INTERVAL_MS = 60000; 
+const unsigned long BLE_TIMEOUT_MS = 30000; 
+
+/* ============================================ */
+/* Function prototypes */
 void I2C_PerhipInitCheck();
 void I2C_ScanBus();
+void FinalPayload_DebugPrint(const FinalPayload& data);
+void NTP_TimeInit();
+bool WiFi_Connect();
+void WiFi_Disconnect();
+bool Send_FinalPayload_POST(const FinalPayload& data);
+String getTimestamp();
+String httpErrorToString(int code);
 
-void setup()
+/* ============================================ */
+/* SETUP */
+/* ============================================ */
+void setup() 
 {
     Serial.begin(115200);
-    Wire.begin();
-    I2C_PerhipInitCheck();
-
-    /* Init BLE device and start scan */
-	  BLE_ClientMgr::init();
-}
-
-void loop()
-{
-    BLE_ClientMgr::communicationManagerMainFunction();
-    INA3221_measureUIperChannels(&ina3321_payload);
     delay(1000);
+    Serial.println("\n\n---------------------------------");
+    Serial.println("  SPMon Master - Sequential Mode  ");
+    Serial.println("---------------------------------");
+
+    // I2C Init
+    Wire.begin(); 
+    I2C_PerhipInitCheck();
+    INA3221_init();
+
+    lastCycleTime = millis() - CYCLE_INTERVAL_MS; 
 }
 
-/* I2C Sensor Init check */
+/* ============================================ */
+/* LOOP                                         */
+/* ============================================ */
+void loop() 
+{
+    if (millis() - lastCycleTime >= CYCLE_INTERVAL_MS) 
+    {
+        lastCycleTime = millis(); 
+        
+        Serial.println("\n=============================================");
+        Serial.println("           INIT WORK CYCLE                     ");
+        Serial.println("=============================================");
+
+        /* ------------------------------------------------ */
+        /* 1. START BLE AND WAIT FOR PAYLOAD                */
+        /* ------------------------------------------------ */
+        Serial.println("--- STATE 1:  START BLE AND WAIT FOR PAYLOAD ---");
+        
+        BLE_ClientMgr::init(); 
+
+        unsigned long bleStartTime = millis();
+        bool dataReceived = false;
+        
+        while (millis() - bleStartTime < BLE_TIMEOUT_MS) 
+        {
+            BLE_ClientMgr::communicationManagerMainFunction();
+            
+            if (BLE_ClientMgr::newDataReceived) 
+            {
+                dataReceived = true;
+                BLE_ClientMgr::newDataReceived = false;
+                break;
+            }
+            delay(100); 
+        }
+
+        if (dataReceived) 
+        {
+            Serial.println(">>> BLE: Payload received succsessfully, read current sensor...");
+            
+            INA3221_measureUIperChannels(&finalPayload.powerData);
+            finalPayload.sensorData = BLE_ClientMgr::getPayload();
+
+            FinalPayload_DebugPrint(finalPayload);
+            
+            /* ------------------------------------------------ */
+            /* 2. STOP BLE (FREE RADIO FOR WIFI)                */
+            /* ------------------------------------------------ */
+            BLE_ClientMgr::stopBLE(); 
+            
+            delay(500); 
+            
+            /* ------------------------------------------------ */
+            /* 3. START WIFI AND SEND POST REQUEST              */
+            /* ------------------------------------------------ */
+            Serial.println("--- STATE 2: START WIFI AND SEND POST REQUEST ---");
+            if (WiFi_Connect()) 
+            {
+                Send_FinalPayload_POST(finalPayload);
+
+                /* ------------------------------------------------ */
+                /* 4. STOP WIFI (Free Radio Antena)      */
+                /* ------------------------------------------------ */
+                WiFi_Disconnect();
+            } 
+            else 
+            {
+                Serial.println(">>> WIFI: Failed to connect, no payload to POST, stop WIFI.");
+                WiFi_Disconnect(); // Oprim modemul la eșec
+            }
+
+        } else 
+        {
+            Serial.printf(">>> ERORR: Timeout (%lu ms) for receiving a payload on BLE. Stop BLE.\n", BLE_TIMEOUT_MS);
+            BLE_ClientMgr::stopBLE(); 
+        }
+
+        Serial.println("\n=============================================");
+        Serial.println("             END CYCLE.               ");
+        Serial.println("=============================================");
+    }
+    
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+}
+
+
+/* ============================================ */
+/* I2C & Debug Helper Functions */
+/* ============================================ */
 void I2C_PerhipInitCheck()
 {
-    /* Scan I2C Bus */
+    Serial.println(">>> I2C: Peripheral Init check...");
     I2C_ScanBus();
-    /* Check and setup AS7341 Sensor */
-    INA3321_init();
 }
 
 void I2C_ScanBus()
 {
-    Serial.println(">>> Scanning I2C bus...");
+    Serial.println(">>> I2C: Scanning bus...");
     for (uint8_t addr = 1; addr < 127; addr++) 
     {
         Wire.beginTransmission(addr);
         if (Wire.endTransmission() == 0) 
-        {
-            Serial.printf(">>> Found device at 0x%02X\n", addr);
-        }
+            Serial.printf(">>> I2C: Found device at 0x%02X\n", addr);
     }
+}
+
+void FinalPayload_DebugPrint(const FinalPayload& data)
+{
+    Serial.println(">>> Final payload: ");
+    Serial.printf("--- CNT: %d | DHT_T: %.2f | DHT_H: %.2f | DS18B20: %.2f | THR: %.2f | PRESSURE: %.2f | LUX: %d\n",
+                  data.sensorData.cnt,
+                  data.sensorData.tempDHT,
+                  data.sensorData.humDHT,
+                  data.sensorData.tempDS18B20,
+                  data.sensorData.tempTHR,
+                  data.sensorData.pressure, 
+                  data.sensorData.lux);
+
+    Serial.print("--- Spectre: ");
+    for (int i = 0; i < 10; i++) 
+    {
+        Serial.print(data.sensorData.spec[i]);
+        if (i < 9) Serial.print(",");
+    }
+    Serial.println();
+    Serial.printf("--- UCH1: %.2f V | ICH1: %.2f mA | UCH2: %.2f V | ICH2: %.2f mA | UCH3: %.2f V | ICH3: %.2f mA\n",
+                  data.powerData.voltage_ch1, data.powerData.current_ch1,
+                  data.powerData.voltage_ch2, data.powerData.current_ch2,
+                  data.powerData.voltage_ch3, data.powerData.current_ch3);
+}
+
+/* ============================================ */
+/* WiFi/Cloud Helper Functions                  */
+/* ============================================ */
+
+void NTP_TimeInit()
+{
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); 
+    Serial.println(">>> [NTP] Time initialized. Syncing will occur upon WiFi connection.");
+}
+
+String getTimestamp()  
+{
+    struct tm timeinfo;
+    
+    if (!getLocalTime(&timeinfo, 3000))  
+    {
+      Serial.println("<<< [NTP] Time Sync Error. Using default.");
+      return "1970-01-01 00:00:00";
+    }
+
+    char timeString[20];
+    strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    return String(timeString);
+}
+
+bool WiFi_Connect() 
+{
+    Serial.print(">>> [WIFI] Connecting to Wi-Fi (" WIFI_SSID ")...");
+    
+    // Pornim Wi-Fi-ul
+    WiFi.mode(WIFI_STA); 
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+    // Așteaptă conectarea (max 10 secunde)
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) 
+    {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) 
+    {
+        Serial.println("\n>>> [WIFI] Connected. IP: " + WiFi.localIP().toString());
+
+        // NTP Init - doar configurează parametrii, sincronizarea se face după pornirea Wi-Fi
+        NTP_TimeInit(); 
+
+        return true;
+    } 
+    else 
+    {
+        Serial.println("\n>>> [WIFI] Failed to connect.");
+        return false;
+    }
+}
+
+void WiFi_Disconnect()
+{
+    if (WiFi.getMode() != WIFI_MODE_NULL) 
+    {
+        Serial.println(">>> [WIFI] Disconnecting and turning off WiFi modem...");
+        WiFi.disconnect(true, true); 
+        WiFi.mode(WIFI_OFF);         
+        Serial.println(">>> [WIFI] WiFi modem turned off (resources freed for BLE).");
+    }
+}
+
+String httpErrorToString(int code) 
+{
+    switch (code) 
+    {
+        case HTTPC_ERROR_CONNECTION_REFUSED: return "Connection Refused (-1)";
+        case HTTPC_ERROR_SEND_HEADER_FAILED: return "Send Header Failed (-2)";
+        case HTTPC_ERROR_SEND_PAYLOAD_FAILED: return "Send Payload Failed (-3)";
+        case HTTPC_ERROR_NOT_CONNECTED: return "Not Connected (-4)";
+        case HTTPC_ERROR_CONNECTION_LOST: return "Connection Lost (-5)";
+        case HTTPC_ERROR_NO_STREAM: return "No Stream (-6)";
+        case HTTPC_ERROR_NO_HTTP_SERVER: return "No HTTP Server (-7)";
+        case HTTPC_ERROR_TOO_LESS_RAM: return "Too Less RAM (-8)";
+        case HTTPC_ERROR_ENCODING: return "Encoding Error (-9)";
+        case HTTPC_ERROR_STREAM_WRITE: return "Stream Write Error (-10)";
+        case HTTPC_ERROR_READ_TIMEOUT: return "Read Timeout (-11)";
+        default: return "Unknown Network Error (" + String(code) + ")";
+    }
+}
+
+
+bool Send_FinalPayload_POST(const FinalPayload& data)
+{
+    if (WiFi.status() != WL_CONNECTED) 
+    {
+        Serial.println("<<< [POST] ERROR: WiFi not connected! Cannot send payload.");
+        return false;
+    }
+
+    /* Build JSON payload using ArduinoJson */
+    StaticJsonDocument<700> doc; 
+
+    // Timestamp NTP
+    doc["Timestamp"] = getTimestamp();
+
+    // Data BLE (SensorPayload)
+    doc["DHT_Temp"] = data.sensorData.tempDHT;
+    doc["DHT_Hum"] = data.sensorData.humDHT;
+    doc["DS_Temp"] = data.sensorData.tempDS18B20;
+    doc["THR_Temp"] = data.sensorData.tempTHR;
+    doc["Pressure"] = data.sensorData.pressure;
+    doc["LUX"] = data.sensorData.lux;
+    
+    // Spectre 
+    doc["Spec_Violet"] = data.sensorData.spec[0];
+    doc["Spec_White"] = data.sensorData.spec[1];
+    doc["Spec_White_Green"] = data.sensorData.spec[2];
+    doc["Spec_Green"] = data.sensorData.spec[3];
+    doc["Spec_Yellow_Green"] = data.sensorData.spec[4];
+    doc["Spec_Yellow"] = data.sensorData.spec[5];
+    doc["Spec_Orange_Red"] = data.sensorData.spec[6];
+    doc["Spec_Red"] = data.sensorData.spec[7];
+    doc["Spec_NIR"] = data.sensorData.spec[8];
+    doc["Spec_Clear"] = data.sensorData.spec[9];
+
+    // Data INA3221 (PowerData)
+    doc["ICH1"] = data.powerData.current_ch1;
+    doc["UCH1"] = data.powerData.voltage_ch1;
+    doc["ICH2"] = data.powerData.current_ch2;
+    doc["UCH2"] = data.powerData.voltage_ch2;
+    doc["ICH3"] = data.powerData.current_ch3;
+    doc["UCH3"] = data.powerData.voltage_ch3;
+
+    // Serialize JSON
+    String json;
+    serializeJson(doc, json);
+
+    // ----------------------------
+    // SEND POST
+    //-----------------------------
+    HTTPClient http;
+    http.begin(SCRIPT_URL); 
+    http.addHeader("Content-Type", "application/json");
+
+    Serial.println(">>> [POST] Sending JSON Payload:");
+    Serial.println(json);
+
+    int httpResponseCode = http.POST(json); 
+
+    Serial.print("POST Response: ");
+    Serial.println(httpResponseCode);
+
+    bool success = false;
+    if (httpResponseCode > 0) 
+    {
+        Serial.println("Server response: " + http.getString());
+        success = true;
+    } 
+    else 
+    {
+        Serial.print("Error in POST request: ");
+        Serial.println(httpErrorToString(httpResponseCode));
+        success = false;
+    }
+
+    http.end();
+    return success;
 }
