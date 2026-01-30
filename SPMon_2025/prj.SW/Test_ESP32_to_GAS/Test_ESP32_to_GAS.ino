@@ -6,8 +6,11 @@
 // ----------------------------
 // CONFIG WiFi + Google Script
 // ----------------------------
-#define WIFI_SSID      "SMM"
-#define WIFI_PASSWORD  "masurari1"
+// #define WIFI_SSID      "SMM"
+// #define WIFI_PASSWORD  "masurari1"
+
+#define WIFI_SSID      "TP-Link_47D4"
+#define WIFI_PASSWORD  "29393145"
 
 #define SCRIPT_URL "https://script.google.com/macros/s/AKfycbwzeNJzdtdMVYKYHxe09Y0Hr9_8betnzkY9nK4Sjz2Sn1O5qQOfaJmLY_VGgSBW_1hZoQ/exec"
 
@@ -115,7 +118,8 @@ void sendToSheet()
 void setup() 
 {
   Serial.begin(115200);
-  delay(500);
+  delay(1000);
+  Serial.println("TEST 1");
 
   Serial.print("Connecting WiFi...");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);

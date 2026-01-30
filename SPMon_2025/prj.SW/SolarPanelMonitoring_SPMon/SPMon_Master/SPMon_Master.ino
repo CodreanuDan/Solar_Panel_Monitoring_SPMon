@@ -1,18 +1,24 @@
+/* 
+ * SPMon_Master.ino
+ * Receives data from SPMon_Slave and sends data to google spreadsheets via HTTP POST
+ */
+ 
+/* Includes */
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
 #include <Wire.h>
-#include <ArduinoJson.h> // Necesara pentru JSON
+#include <ArduinoJson.h> 
 #include "BLE_ClientMgr.h"
 #include "INA3221_Hdl.h"
 #include "SensorPayload.h"
 #include "FinalPayload.h"
 
 /* --- Configuration Constants --- */
-// #define WIFI_SSID       "SMM"
-// #define WIFI_PASSWORD   "masurari1"
-#define WIFI_SSID       "TP-Link_47D4"
-#define WIFI_PASSWORD   "29393145"
+#define WIFI_SSID       "SMM"
+#define WIFI_PASSWORD   "masurari1"
+// #define WIFI_SSID       "TP-Link_47D4"
+// #define WIFI_PASSWORD   "29393145"
 #define SCRIPT_URL      "https://script.google.com/macros/s/AKfycbwzeNJzdtdMVYKYHxe09Y0Hr9_8betnzkY9nK4Sjz2Sn1O5qQOfaJmLY_VGgSBW_1hZoQ/exec"
 
 /* NTP CONFIG (Romania) */ 
@@ -222,9 +228,9 @@ bool WiFi_Connect()
     WiFi.mode(WIFI_STA); 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-    // Așteaptă conectarea (max 10 secunde)
+    // Așteaptă conectarea (max 20 secunde)
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) 
+    while (WiFi.status() != WL_CONNECTED && attempts < 40) 
     {
         delay(500);
         Serial.print(".");

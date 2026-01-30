@@ -1,0 +1,112 @@
+(ExpressProject "SPMon_SlaveBoard"
+  (ProjectVersion "19981106")
+  (ProjectType "Analog or A/D Mixed Mode")
+  (Folder "Design Resources"
+    (Folder "Library")
+    (NoModify)
+    (File ".\spmon_slaveboard.dsn"
+      (Type "Schematic Design"))
+    (BuildFileAddedOrDeleted "x")
+    (CompileFileAddedOrDeleted "x")
+    (Netlist_TAB "5")
+    (LAYOUT_Netlist_File "SPMON_SLAVEBOARD.MNL")
+    (LAYOUT_PCB_Footprint "{PCB Footprint}")
+    (TRUE)
+    (LAYOUT_Units "0")
+    (TRUE)
+    (TRUE)
+    (DRC_Scope "0")
+    (DRC_Action "0")
+    (DRC_Create_Warnings "FALSE")
+    (DRC_Check_Ports "FALSE")
+    (DRC_Check_Off-Page_Connectors "FALSE")
+    (DRC_Identical_References "TRUE")
+    (DRC_Type_Mismatch "TRUE")
+    (DRC_Report_Ports_and_Off-page_Connectors "FALSE")
+    (DRC_SDT_Compatibility "FALSE")
+    (DRC_Report_Off-grid_Objects "FALSE")
+    (DRC_Check_Unconnected_Nets "TRUE")
+    (DRC_Report_Netnames "FALSE")
+    (DRC_View_Output "FALSE")
+    (DRC_Report_File
+       "C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\SPMON_SLAVEBOARD\CAPTURE\SPMON_SLAVEBOARD.DRC")
+    (FALSE)
+    (FALSE)
+    (FALSE))
+  (Folder "Outputs"
+    (File ".\spmon_slaveboard.mnl"
+      (Type "LAYOUT Netlist File"))
+    (File "..\layout\spmon_slaveboard.mnl"
+      (Type "LAYOUT Netlist File"))
+    (File ".\spmon_slaveboard.drc"
+      (Type "Report")))
+  (Folder "PSpice Resources"
+    (Folder "Simulation Profiles")
+    (Folder "Model Libraries"
+      (Sort User))
+    (Folder "Stimulus Files"
+      (Sort User))
+    (Folder "Include Files"
+      (Sort User)))
+  (DefaultLibraryBrowseDirectory "library\PSpice")
+  (PartMRUSelector
+    (CON4
+      (FullPartName "CON4.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (CON3
+      (FullPartName "CON3.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (RESISTOR
+      (FullPartName "RESISTOR.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\DISCRETE.OLB")
+      (DeviceIndex "0"))
+    ("HEADER 2"
+      (FullPartName "HEADER 2.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    ("HEADER 4"
+      (FullPartName "HEADER 4.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    ("HEADER 3"
+      (FullPartName "HEADER 3.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\CONNECTOR.OLB")
+      (DeviceIndex "0"))
+    (DS18B20
+      (FullPartName "DS18B20.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\DS18B20.OLB")
+      (DeviceIndex "0"))
+    (SENSOR-DHT11
+      (FullPartName "SENSOR-DHT11.Normal")
+      (LibraryName "D:\ORCAD 9.2\ORCAD_FULL\CAPTURE\LIBRARY\DHT11.OLB")
+      (DeviceIndex "0"))
+    (ESP32-DEVKIT-V1
+      (FullPartName "ESP32-DEVKIT-V1.Normal")
+      (LibraryName
+         "C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\RES\ESP32-DEVKIT-V1\ESP32-DEVKIT-V1.OLB")
+      (DeviceIndex "0")))
+  (LastUsedLibraryBrowseDirectory "D:\Orcad 9.2\ORCAD_FULL\Capture\Library")
+  (GlobalState
+    (FileView
+      (Path "Design Resources")
+      (Path "Outputs")
+      (Path "PSpice Resources"))
+    (HierarchyView)
+    (Doc
+      (Type "COrCapturePMDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -8 -31 0 263 0 688"))
+      (Tab 0))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 0 1 -1 -1 -1 -1 262 1887 -1 687")
+        (Scroll "0 0")
+        (Zoom "200")
+        (Occurrence "/"))
+      (Path
+         "C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\SPMON_SLAVEBOARD\CAPTURE\SPMON_SLAVEBOARD.DSN")
+      (Schematic "SCHEMATIC1")
+      (Page "PAGE1"))))

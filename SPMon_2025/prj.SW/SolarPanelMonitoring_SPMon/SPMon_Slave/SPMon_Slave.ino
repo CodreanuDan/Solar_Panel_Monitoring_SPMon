@@ -237,14 +237,14 @@ void I2C_PerhipInitCheck()
     if (!bh1750.begin())
     {
         Serial.println(">>> Could not find BH1750");
-        while(1);
+        // while(1);
     }
 
     /* Check bmp180 sensor */
     if (!bmp180.begin())
     {
         Serial.println(">>> Could not find BMP180");
-        while(1);
+        // while(1);
     }
 }
 
