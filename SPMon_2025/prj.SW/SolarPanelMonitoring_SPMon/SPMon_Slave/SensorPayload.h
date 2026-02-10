@@ -10,7 +10,7 @@ typedef struct __attribute__((packed))
     float tempDHT;
     float humDHT;
     float tempDS18B20;
-    float tempTHR;
+    float tempBmp;
     float pressure;
     uint16_t lux;
     uint16_t spec[10];

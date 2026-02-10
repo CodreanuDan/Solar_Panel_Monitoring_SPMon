@@ -8,6 +8,10 @@
 class BLE_ClientMgr
 {
 public:
+
+    static bool isNewDataReceived();
+    static void clearNewDataFlag();
+
     static void init(); 
     static void communicationManagerMainFunction(); 
     static void stopBLE(); 
@@ -15,6 +19,7 @@ public:
     static const SensorPayload& getPayload() { return payload; }
     
     static boolean newDataReceived; 
+    static boolean connectionLost;  /* NEW to counter BLE blockings*/
 
 private:
     static BLEClient* pCurrentClient;
@@ -43,3 +48,7 @@ private:
 };
 
 #endif
+
+
+
+   

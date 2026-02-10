@@ -1,14 +1,4 @@
 AutoECO Error Report
 FILE-A: C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\SPMON_SLAVEBOARD\LAYOUT\SPMON_SLAVEBOARD.MAX
 FILE-B: C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\SPMON_SLAVEBOARD\LAYOUT\SPMON_SLAVEBOARD.MNL
-ERROR: Electrical package ESP32-DEVKIT-V1 for comp U1 has at least one pin (17)                        
-which has no corresponding pin on footprint ESP32_DEVKIT-V1_FOOTPRINT.                        
-You may create or modify a footprint, choose another,                        
-or press Cancel at the main dialog to skip this component.
-ERROR: Electrical package ESP32-DEVKIT-V1 for comp U1 has at least one pin (17)                        
-which has no corresponding pin on footprint ESP32_DEVKIT-V1_FOOTPRINT.                        
-You may create or modify a footprint, choose another,                        
-or press Cancel at the main dialog to skip this component.
-ERROR: No footprint found for comp U1
-Unable to complete ECO due to errors
-1 error found
+No errors found

@@ -4,11 +4,12 @@ function doPost(e) {
   const data = JSON.parse(e.postData.contents);
 
   sheet.appendRow([
-    data.Timestamp,
+    data.Date,
+    data.Time,
     data.DHT_Temp,
     data.DHT_Hum,
     data.DS_Temp,
-    data.THR_Temp,
+    data.BMP_Temp,
     data.Pressure,
     data.LUX,
     data.Spec_Violet,
@@ -31,3 +32,4 @@ function doPost(e) {
 
   return ContentService.createTextOutput("OK");
 }
+
