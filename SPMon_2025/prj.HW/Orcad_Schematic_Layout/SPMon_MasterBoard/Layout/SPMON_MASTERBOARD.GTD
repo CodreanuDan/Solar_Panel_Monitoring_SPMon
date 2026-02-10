@@ -1,0 +1,50 @@
+{Environment
+	{FilesPath  C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\SPMON_MASTERBOARD\LAYOUT}
+}
+{Layers
+	{Layer  1
+		{File        SPMON_MASTERBOARD.TOP}
+		{LyrName     -}
+		{ApList      }
+		{Visibility  On}
+		{FlashColor  Cyan}
+		{DrawColor   Cyan}
+		{Type        Top}
+	}
+	{Layer  2
+		{File        SPMON_MASTERBOARD.BOT}
+		{LyrName     -}
+		{ApList      }
+		{Visibility  On}
+		{FlashColor  Red}
+		{DrawColor   Red}
+		{Type        Bottom}
+	}
+	{Layer  3
+		{File        SPMON_MASTERBOARD.DRD}
+		{LyrName     -}
+		{ApList      }
+		{Visibility  On}
+		{FlashColor  Red}
+		{DrawColor   Red}
+		{Type        Other}
+	}
+}
+{Format Gerber
+	{Dialect           RS274X}
+	{m.n               3.4}
+	{Mode              Absolute}
+	{ZeroSuppression   Leading}
+	{Terminator        0x2a, 0xD, 0xA}
+	{Metric            No}
+	{Modal             No}
+	{UserData          Yes}
+	{Nets              No}
+	{Gcmds             Yes}
+	{CharSet           ASCII}
+	{Arcs360           No}
+	{ArcsModal         Yes}
+	{HonorCrLf         No}
+	{Comments          Yes}
+	{Flags             0}
+}

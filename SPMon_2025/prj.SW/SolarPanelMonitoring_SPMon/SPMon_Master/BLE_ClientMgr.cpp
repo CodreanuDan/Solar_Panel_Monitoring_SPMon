@@ -135,7 +135,6 @@ bool BLE_ClientMgr::connectToServer(BLEAddress pAddress)
     return true;
 }
 
-=====
 void BLE_ClientMgr::testNotifyCallback(BLERemoteCharacteristic*, uint8_t* pData, size_t length, bool)
 {
     if (length == sizeof(SensorPayload)) 

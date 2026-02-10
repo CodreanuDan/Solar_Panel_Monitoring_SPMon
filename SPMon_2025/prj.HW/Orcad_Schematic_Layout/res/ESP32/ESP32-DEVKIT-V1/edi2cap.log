@@ -1,0 +1,35 @@
+
+EDIF to OrCAD Capture Schematic Conversion Program, Version 2.12 Built With EDI V2.53
+ (C) Copyright 1996-1999 - Engineering DataXpress, Inc., All rights reserved.
+
+ Started Sat Dec 06 17:16:03 2025
+
+Reading options from C:\Users\dan\Documents\GitHub\Solar_Panel_Monitoring\SPMon_2025\prj.HW\Orcad_Schematic_Layout\res\ESP32\ESP32-DEVKIT-V1\EDI2CAP.CFG
+Warning: Improper ;>------- option
+Reading file C:\Users\dan\Documents\GitHub\Solar_Panel_Monitoring\SPMon_2025\prj.HW\Orcad_Schematic_Layout\res\ESP32\ESP32-DEVKIT-V1\ESP32-DEVKIT-V1.edf
+********** Duplicate Rename String nameDefs ***********
+***  Clashing portNameDef: GND__1, "GND"
+  In the following context: 
+    port GND__1, "GND"
+    interface
+    view NORMAL, "Normal"
+    cell ESP32_45_DEVKIT_45_V1, "ESP32-DEVKIT-V1"
+    library ESP32_45_DEVKIT_45_V1, "ESP32-DEVKIT-V1"
+    edif ESP32_45_DEVKIT_45_V1, "ESP32-DEVKIT-V1"
+    Immediate Scope for this name class is: view NORMAL, "Normal"
+*** System name clash with: portNameDef: GND, "GND"
+  In the following context: 
+    port GND, "GND"
+    interface
+    Immediate Scope for this name class is: view NORMAL, "Normal"
+<<<< WARNING - Rename String changed to: GND_GND__1 >>>>
+-----------------------------------------
+*** EDIF Reader or Semantic Checker Errors/Warnings = 0/1
+Opening library C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\RES\ESP32\ESP32-DEVKIT-V1\ESP32-DEVKIT-V1.OLB
+Translating symbol ESP32-DEVKIT-V1
+Saving Library C:\USERS\DAN\DOCUMENTS\GITHUB\SOLAR_PANEL_MONITORING\SPMON_2025\PRJ.HW\ORCAD_SCHEMATIC_LAYOUT\RES\ESP32\ESP32-DEVKIT-V1\ESP32-DEVKIT-V1.OLB
+WARNING: No schematics were translated, so no Design file was created, only library files
+
+Completed Sat Dec 06 17:16:12 2025
+Translated 1 symbols and 0 schematics, 0 errors, 2 warnings
+

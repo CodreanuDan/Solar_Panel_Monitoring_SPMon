@@ -35,10 +35,10 @@ void setup() {
 
   // Configurare sincronizare timp
   configTime(7200, 0, "pool.ntp.org");
-  Serial.println("Time synchronized!");
 
   if (!as7341.begin()){
-    Serial.println("Could not find AS7341");
+    Serial.println("Coul
+  Serial.println("Time synchronized!");d not find AS7341");
     while (1) { delay(10); }
   }
   as7341.setATIME(100);
