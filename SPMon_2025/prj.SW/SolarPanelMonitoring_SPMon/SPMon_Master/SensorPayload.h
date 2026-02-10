@@ -10,7 +10,7 @@ typedef struct __attribute__((packed))
     float tempDHT;        // 4 bytes
     float humDHT;         // 4 bytes
     float tempDS18B20;    // 4 bytes
-    float tempTHR;        // 4 bytes
+    float tempBmp;        // 4 bytes
     float pressure;       // 4 bytes
     uint16_t lux;         // 2 bytes
     uint16_t spec[10];    // 10 * 2 = 20 bytes

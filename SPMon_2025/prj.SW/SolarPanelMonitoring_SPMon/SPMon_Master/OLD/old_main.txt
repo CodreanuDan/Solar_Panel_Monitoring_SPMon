@@ -30,11 +30,8 @@ const int   daylightOffset_sec = 3600;  // DST
 FinalPayload finalPayload;
 
 unsigned long lastCycleTime = 0;
-const unsigned long CYCLE_INTERVAL_MS = 15000; 
-const unsigned long BLE_TIMEOUT_MS = 7500; 
-
-/* Heap monitoring */
-uint32_t minFreeHeap = 0xFFFFFFFF;
+const unsigned long CYCLE_INTERVAL_MS = 60000; 
+const unsigned long BLE_TIMEOUT_MS = 30000; 
 
 /* ============================================ */
 /* Function prototypes */
@@ -46,10 +43,7 @@ bool WiFi_Connect();
 void WiFi_Disconnect();
 bool Send_FinalPayload_POST(const FinalPayload& data);
 String getTimestamp();
-String getDate();
-String getTime();
 String httpErrorToString(int code);
-void logHeapStatus(const char* location);
 
 /* ============================================ */
 /* SETUP */
@@ -64,11 +58,8 @@ void setup()
 
     // I2C Init
     Wire.begin(); 
-    delay(300);
     I2C_PerhipInitCheck();
     INA3221_init();
-
-    logHeapStatus("After setup()");
 
     lastCycleTime = millis() - CYCLE_INTERVAL_MS; 
 }
@@ -85,7 +76,6 @@ void loop()
         Serial.println("\n=============================================");
         Serial.println("           INIT WORK CYCLE                     ");
         Serial.println("=============================================");
-        logHeapStatus("Start of cycle");
 
         /* ------------------------------------------------ */
         /* 1. START BLE AND WAIT FOR PAYLOAD                */
@@ -93,7 +83,6 @@ void loop()
         Serial.println("--- STATE 1:  START BLE AND WAIT FOR PAYLOAD ---");
         
         BLE_ClientMgr::init(); 
-        logHeapStatus("After BLE init");
 
         unsigned long bleStartTime = millis();
         bool dataReceived = false;
@@ -102,44 +91,30 @@ void loop()
         {
             BLE_ClientMgr::communicationManagerMainFunction();
             
-            /* FIXED: Use thread-safe check */
-            if (BLE_ClientMgr::isNewDataReceived()) 
+            if (BLE_ClientMgr::newDataReceived) 
             {
                 dataReceived = true;
-                BLE_ClientMgr::clearNewDataFlag();
+                BLE_ClientMgr::newDataReceived = false;
                 break;
             }
-
-            /*  Break if connection lost */
-            if (BLE_ClientMgr::connectionLost) 
-            {
-                Serial.println(">>> Breaking loop - connection lost");
-                break;
-            }
-            
-            /* FIXED: Use vTaskDelay instead of delay to not block FreeRTOS scheduler */
-            vTaskDelay(100 / portTICK_PERIOD_MS); 
+            delay(100); 
         }
 
         if (dataReceived) 
         {
-            Serial.println(">>> BLE: Payload received successfully, reading current sensor...");
+            Serial.println(">>> BLE: Payload received succsessfully, read current sensor...");
             
             INA3221_measureUIperChannels(&finalPayload.powerData);
-            finalPayload.sensorData = BLE_ClientMgr::getPayload();  // Thread-safe copy
+            finalPayload.sensorData = BLE_ClientMgr::getPayload();
 
             FinalPayload_DebugPrint(finalPayload);
             
             /* ------------------------------------------------ */
             /* 2. STOP BLE (FREE RADIO FOR WIFI)                */
             /* ------------------------------------------------ */
-            Serial.println("--- Stopping BLE before WiFi ---");
-            BLE_ClientMgr::stopBLE();  // Now includes proper cleanup delays
+            BLE_ClientMgr::stopBLE(); 
             
-            logHeapStatus("After BLE stop");
-            
-            /* CRITICAL: Extra delay to ensure BLE stack fully torn down before WiFi starts */
-            vTaskDelay(500 / portTICK_PERIOD_MS); 
+            delay(500); 
             
             /* ------------------------------------------------ */
             /* 3. START WIFI AND SEND POST REQUEST              */
@@ -147,77 +122,31 @@ void loop()
             Serial.println("--- STATE 2: START WIFI AND SEND POST REQUEST ---");
             if (WiFi_Connect()) 
             {
-                logHeapStatus("After WiFi connect");
-                
-                // Send_FinalPayload_POST(finalPayload);
-
-                String currentDate = getDate();
-                if (currentDate == "1970-01-01") 
-                {
-                    Serial.println(">>> [POST] ERROR: Time not synced (1970-01-01). Skipping POST this cycle.");
-                }
-                else
-                {
-                    Send_FinalPayload_POST(finalPayload);
-                }
+                Send_FinalPayload_POST(finalPayload);
 
                 /* ------------------------------------------------ */
-                /* 4. STOP WIFI (Free Radio Antenna)                */
+                /* 4. STOP WIFI (Free Radio Antena)      */
                 /* ------------------------------------------------ */
-                WiFi_Disconnect();  // Now includes proper cleanup delays
-                
-                logHeapStatus("After WiFi disconnect");
+                WiFi_Disconnect();
             } 
             else 
             {
-                Serial.println(">>> WIFI: Failed to connect, no payload to POST, stopping WIFI.");
-                WiFi_Disconnect();
+                Serial.println(">>> WIFI: Failed to connect, no payload to POST, stop WIFI.");
+                WiFi_Disconnect(); // Oprim modemul la eșec
             }
 
-        } 
-        else 
+        } else 
         {
-            Serial.printf(">>> ERROR: Timeout (%lu ms) for receiving a payload on BLE. Stopping BLE.\n", BLE_TIMEOUT_MS);
+            Serial.printf(">>> ERORR: Timeout (%lu ms) for receiving a payload on BLE. Stop BLE.\n", BLE_TIMEOUT_MS);
             BLE_ClientMgr::stopBLE(); 
-            logHeapStatus("After BLE timeout");
         }
 
         Serial.println("\n=============================================");
         Serial.println("             END CYCLE.               ");
         Serial.println("=============================================");
-        logHeapStatus("End of cycle");
     }
     
-    /* FIXED: Use vTaskDelay instead of delay */
     vTaskDelay(100 / portTICK_PERIOD_MS);
-}
-
-
-/* ============================================ */
-/* Heap Monitoring */
-/* ============================================ */
-void logHeapStatus(const char* location)
-{
-    uint32_t freeHeap = ESP.getFreeHeap();
-    uint32_t minHeap = ESP.getMinFreeHeap();
-    
-    if (freeHeap < minFreeHeap)
-    {
-        minFreeHeap = freeHeap;
-    }
-    
-    Serial.printf(">>> HEAP [%s]: Free=%lu bytes, Min=%lu bytes, MinEver=%lu bytes\n",
-                location,
-                (unsigned long)freeHeap,
-                (unsigned long)minHeap,
-                (unsigned long)minFreeHeap);
-
-    
-    /* Warning if heap is getting low */
-    if (freeHeap < 50000)
-    {
-        Serial.println(">>> WARNING: Low heap! Possible memory leak or fragmentation.");
-    }
 }
 
 
@@ -233,17 +162,12 @@ void I2C_PerhipInitCheck()
 void I2C_ScanBus()
 {
     Serial.println(">>> I2C: Scanning bus...");
-    int count = 0;
     for (uint8_t addr = 1; addr < 127; addr++) 
     {
         Wire.beginTransmission(addr);
         if (Wire.endTransmission() == 0) 
-        {
             Serial.printf(">>> I2C: Found device at 0x%02X\n", addr);
-            count++;
-        }
     }
-    Serial.printf(">>> I2C: Scan done. %d device(s) found.\n", count);
 }
 
 void FinalPayload_DebugPrint(const FinalPayload& data)
@@ -296,47 +220,19 @@ String getTimestamp()
     return String(timeString);
 }
 
-String getDate()
-{
-    struct tm timeinfo;
-
-    if (!getLocalTime(&timeinfo, 3000))
-    {
-        Serial.println("<<< [NTP] Date Sync Error.");
-        return "1970-01-01";
-    }
-
-    char dateString[11];
-    strftime(dateString, sizeof(dateString), "%Y-%m-%d", &timeinfo);
-    return String(dateString);
-}
-
-String getTime()
-{
-    struct tm timeinfo;
-
-    if (!getLocalTime(&timeinfo, 3000))
-    {
-        Serial.println("<<< [NTP] Time Sync Error.");
-        return "00:00:00";
-    }
-
-    char timeString[9];
-    strftime(timeString, sizeof(timeString), "%H:%M:%S", &timeinfo);
-    return String(timeString);
-}
-
 bool WiFi_Connect() 
 {
     Serial.print(">>> [WIFI] Connecting to Wi-Fi (" WIFI_SSID ")...");
     
+    // Pornim Wi-Fi-ul
     WiFi.mode(WIFI_STA); 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
+    // Așteaptă conectarea (max 20 secunde)
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 40) 
     {
-        vTaskDelay(500 / portTICK_PERIOD_MS);  // FIXED: Use vTaskDelay
+        delay(500);
         Serial.print(".");
         attempts++;
     }
@@ -344,7 +240,10 @@ bool WiFi_Connect()
     if (WiFi.status() == WL_CONNECTED) 
     {
         Serial.println("\n>>> [WIFI] Connected. IP: " + WiFi.localIP().toString());
+
+        // NTP Init - doar configurează parametrii, sincronizarea se face după pornirea Wi-Fi
         NTP_TimeInit(); 
+
         return true;
     } 
     else 
@@ -359,14 +258,8 @@ void WiFi_Disconnect()
     if (WiFi.getMode() != WIFI_MODE_NULL) 
     {
         Serial.println(">>> [WIFI] Disconnecting and turning off WiFi modem...");
-        
-        /* FIXED: Proper cleanup sequence with delays */
-        WiFi.disconnect(true, false);  // Disconnect but don't erase config yet
-        vTaskDelay(300 / portTICK_PERIOD_MS);  // Let TCP connections close
-        
-        WiFi.mode(WIFI_OFF);  // Now turn off the radio
-        vTaskDelay(200 / portTICK_PERIOD_MS);  // Let WiFi stack fully stop
-        
+        WiFi.disconnect(true, true); 
+        WiFi.mode(WIFI_OFF);         
         Serial.println(">>> [WIFI] WiFi modem turned off (resources freed for BLE).");
     }
 }
@@ -402,9 +295,10 @@ bool Send_FinalPayload_POST(const FinalPayload& data)
     /* Build JSON payload using ArduinoJson */
     StaticJsonDocument<700> doc; 
 
-    // doc["Timestamp"] = getTimestamp();
-    doc["Date"] = getDate();
-    doc["Time"] = getTime();
+    // Timestamp NTP
+    doc["Timestamp"] = getTimestamp();
+
+    // Data BLE (SensorPayload)
     doc["DHT_Temp"] = data.sensorData.tempDHT;
     doc["DHT_Hum"] = data.sensorData.humDHT;
     doc["DS_Temp"] = data.sensorData.tempDS18B20;
@@ -412,6 +306,7 @@ bool Send_FinalPayload_POST(const FinalPayload& data)
     doc["Pressure"] = data.sensorData.pressure;
     doc["LUX"] = data.sensorData.lux;
     
+    // Spectre 
     doc["Spec_Violet"] = data.sensorData.spec[0];
     doc["Spec_White"] = data.sensorData.spec[1];
     doc["Spec_White_Green"] = data.sensorData.spec[2];
@@ -423,6 +318,7 @@ bool Send_FinalPayload_POST(const FinalPayload& data)
     doc["Spec_NIR"] = data.sensorData.spec[8];
     doc["Spec_Clear"] = data.sensorData.spec[9];
 
+    // Data INA3221 (PowerData)
     doc["ICH1"] = data.powerData.current_ch1;
     doc["UCH1"] = data.powerData.voltage_ch1;
     doc["ICH2"] = data.powerData.current_ch2;
@@ -430,13 +326,16 @@ bool Send_FinalPayload_POST(const FinalPayload& data)
     doc["ICH3"] = data.powerData.current_ch3;
     doc["UCH3"] = data.powerData.voltage_ch3;
 
+    // Serialize JSON
     String json;
     serializeJson(doc, json);
 
+    // ----------------------------
+    // SEND POST
+    //-----------------------------
     HTTPClient http;
     http.begin(SCRIPT_URL); 
     http.addHeader("Content-Type", "application/json");
-    http.setTimeout(15000);  // 15 second timeout
 
     Serial.println(">>> [POST] Sending JSON Payload:");
     Serial.println(json);
@@ -459,11 +358,6 @@ bool Send_FinalPayload_POST(const FinalPayload& data)
         success = false;
     }
 
-    http.end();  // Clean up HTTP connection
-    WiFiClient().stop();
-    vTaskDelay(200 / portTICK_PERIOD_MS);
-
+    http.end();
     return success;
 }
-
-

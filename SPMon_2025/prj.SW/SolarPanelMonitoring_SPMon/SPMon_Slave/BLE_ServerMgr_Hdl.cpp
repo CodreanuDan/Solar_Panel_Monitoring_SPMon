@@ -60,3 +60,4 @@ void BLE_ServerMgrHdl::ServerCallbacks::onDisconnect(BLEServer* pServer)
     BLEDevice::startAdvertising();
     Serial.println(">>> Advertising restarted...");
 }
+
